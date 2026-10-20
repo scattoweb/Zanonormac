@@ -1,0 +1,25 @@
+---
+// Root: send visitors to their language. German browsers go to /de/, English to /en/, everyone else to /it/.
+---
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zanon &amp; Ormac</title>
+  <meta name="robots" content="noindex" />
+  <link rel="canonical" href="https://zanormac.net/it/" />
+  <script is:inline>
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem('zo-lang'); } catch (e) {}
+      var l = (saved || (navigator.language || 'it')).slice(0, 2).toLowerCase();
+      location.replace('/' + (l === 'de' || l === 'en' ? l : 'it') + '/' + location.search + location.hash);
+    })();
+  </script>
+  <meta http-equiv="refresh" content="1; url=/it/" />
+</head>
+<body style="margin:0;background:#0e1210;color:#f2f4f0;font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh">
+  <a href="/it/" style="color:#4cc985">Zanon &amp; Ormac</a>
+</body>
+</html>

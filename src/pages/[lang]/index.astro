@@ -1,0 +1,342 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import MachineCard from '../../components/MachineCard.astro';
+import CompareDialog from '../../components/CompareDialog.astro';
+import { pick, useT, type Lang } from '../../i18n/ui';
+import { PATHS, langPaths, localize } from '../../i18n/utils';
+import { BRANCHES, COMPANY, telHref } from '../../data/company';
+import { BRAND_IDS, GROUPS, INVENTORY } from '../../data/inventory';
+import { BRANDS } from '../../data/brands';
+import { FLEET, RENT_TYPES } from '../../data/rental';
+import hero from '../../assets/img/hero2.jpg';
+import service from '../../assets/img/service.jpg';
+
+export const getStaticPaths = langPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const stock = [...INVENTORY].sort((a, b) => b.added - a.added);
+const ready = INVENTORY.filter((m) => m.status === 'ready').length;
+const groupCount = (g: string, cond = 'tutte') => INVENTORY.filter((m) => (g === 'all' || m.group === g) && (cond === 'tutte' || m.cond === cond)).length;
+const heroCounts = INVENTORY.map((m) => ({ g: m.group, b: m.brand, c: m.cond }));
+const fleetCounts = FLEET.map((f) => ({ cat: f.cat, b: f.name.startsWith('Volvo') ? 'Volvo CE' : f.name.split(' ')[0] }));
+
+const TOPICS = [
+  { id: 'new', label: { it: 'Acquisto nuovo', de: 'Neukauf', en: 'New machine' }, owner: { it: 'referente del marchio', de: 'Markenbetreuer', en: 'brand manager' }, ph: { it: 'Es. pala gommata da 20 t per cava, consegna entro marzo', de: 'z. B. Radlader 20 t für Steinbruch, Lieferung bis März', en: 'e.g. 20 t wheel loader for a quarry, delivery by March' } },
+  { id: 'used', label: { it: 'Usato', de: 'Gebraucht', en: 'Used' }, owner: { it: 'referente usato', de: 'Gebrauchtmaschinen-Team', en: 'used equipment team' }, ph: { it: 'Es. mini escavatore 3 t, massimo 3.000 ore', de: 'z. B. Minibagger 3 t, max. 3.000 Stunden', en: 'e.g. 3 t mini excavator, max 3,000 hours' } },
+  { id: 'rent', label: { it: 'Noleggio', de: 'Miete', en: 'Rental' }, owner: { it: 'referente noleggio', de: 'Miet-Team', en: 'rental team' }, ph: { it: 'Es. escavatore 14 t per due settimane a Brescia', de: 'z. B. Bagger 14 t für zwei Wochen in Bozen', en: 'e.g. 14 t excavator for two weeks in Brescia' } },
+  { id: 'svc', label: { it: 'Assistenza', de: 'Service', en: 'Service' }, owner: { it: 'officina più vicina', de: 'nächste Werkstatt', en: 'nearest workshop' }, ph: { it: 'Es. tagliando Volvo EC220E, matricola …', de: 'z. B. Inspektion Volvo EC220E, Seriennummer …', en: 'e.g. Volvo EC220E service, serial …' } },
+  { id: 'sell', label: { it: 'Vendo la mia macchina', de: 'Maschine verkaufen', en: 'Sell my machine' }, owner: { it: 'referente usato', de: 'Gebrauchtmaschinen-Team', en: 'used equipment team' }, ph: { it: 'Marca, modello, anno e ore di lavoro', de: 'Marke, Modell, Baujahr und Stunden', en: 'Brand, model, year and hours' } },
+];
+
+const i18n = {
+  showN: t('showN'), show1: t('show1'), rentN: t('rentN'), none: t('none'),
+  day: t('day'), days: t('days'), sumSite: t('sumSite'), sumPick: t('sumPick'), badDates: t('badDates'),
+  book: t('book'), partsDone: t('partsDone'), partsHint: t('partsHint'),
+  thanks: t('thanks'), sentPlain: t('sentPlain'), sentPhone: t('sentPhone'), sentNoPhone: t('sentNoPhone'), sentWa: t('sentWa'), sendError: t('sendError'), sending: t('sending'), send: t('send'),
+  rentTypes: Object.fromEntries(RENT_TYPES.map((r) => [r.id, t(r.key)])),
+  branches: Object.fromEntries(BRANCHES.map((b) => [b.id, pick(b.short, lang)])),
+  topics: Object.fromEntries(TOPICS.map((tp) => [tp.id, { owner: pick(tp.owner, lang), ph: pick(tp.ph, lang), label: pick(tp.label, lang) }])),
+};
+---
+<Base lang={lang} path={PATHS.home} section="home"
+  title={lang === 'de' ? 'Zanon & Ormac · Baumaschinen: Verkauf, Miete, Service' : lang === 'en' ? 'Zanon & Ormac · Earthmoving machines: sales, rental, service' : 'Zanon & Ormac · Macchine movimento terra: vendita, noleggio, assistenza'}
+  description={t('lead')}>
+
+  <section class="hero" data-parallax aria-labelledby="hero-title">
+    <div class="hero__kb" aria-hidden="true">
+      <Image class="hero__img" src={hero} alt="" widths={[640, 1024, 1440, 1920]} sizes="100vw" loading="eager" fetchpriority="high" />
+    </div>
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="wrap hero__in">
+      <div class="hero__left">
+        <div class="hero__copy">
+          <span class="eyebrow fade-up">{t('kicker')}</span>
+          <h1 id="hero-title" class="h1 fade-up d1">{t('h1')}</h1>
+          <p class="lead fade-up d2">{t('lead')}</p>
+        </div>
+
+        <form class="hero__search glass fade-up d3" method="get" action={localize(lang, PATHS.stock)} data-hero-search aria-label={t('search')}>
+          <input type="hidden" name="cond" value="usato" />
+          <div class="seg" role="tablist" style="--i:0" data-hero-tabs>
+            <span class="seg__thumb"></span>
+            <button type="button" role="tab" aria-selected="true" data-value="usato">{t('navUsed')}</button>
+            <button type="button" role="tab" aria-selected="false" data-value="nuovo">{t('navNew')}</button>
+            <button type="button" role="tab" aria-selected="false" data-value="noleggio">{t('navRent')}</button>
+          </div>
+          <div class="fields">
+            <label class="field" for="q-cat">
+              <span class="label">{t('category')}</span>
+              <span class="select-wrap">
+                <select class="select" id="q-cat" name="cat">
+                  <option value="">{t('allCats')}</option>
+                  {GROUPS.map((g) => <option value={g.id}>{pick(g.label, lang)}</option>)}
+                </select>
+                <Icon name="chevron" size={16} />
+              </span>
+            </label>
+            <label class="field" for="q-brand">
+              <span class="label">{t('brand')}</span>
+              <span class="select-wrap">
+                <select class="select" id="q-brand" name="brand">
+                  <option value="">{t('allBrands')}</option>
+                  {BRAND_IDS.map((b) => <option value={b}>{b === 'Altre' ? t('otherBrands') : b}</option>)}
+                </select>
+                <Icon name="chevron" size={16} />
+              </span>
+            </label>
+          </div>
+          <div class="actions">
+            <button class="btn btn--primary btn--lg ripple sheen link-arrow" type="submit">
+              <span data-hero-count>{t('showN', { n: INVENTORY.filter((m) => m.cond === 'usato').length })}</span>
+              <Icon name="arrow" class="arrow" />
+            </button>
+            <p class="hero__help">{t('notFound')} <a href="#contatti">{t('weSearch')}</a></p>
+          </div>
+        </form>
+      </div>
+
+      <div class="hero__badges fade-up d4">
+        <span class="caption-chip glass">{t('heroCaption')}</span>
+        <a class="ready-chip ripple link-arrow" href="#stock">
+          <span class="dot dot--live" style="width:8px;height:8px;background:var(--live)"></span>
+          <span>{t('readyN', { n: ready })}</span>
+          <Icon name="arrow" size={16} class="arrow" />
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="on-ink" style="border-top:1px solid rgba(255,255,255,.14)">
+    <div class="wrap stats">
+      <div class="stat"><b>{COMPANY.founded}</b><span>{t('st1')}</span></div>
+      <div class="stat"><b>5</b><span>{t('st2')}</span></div>
+      <div class="stat"><b>50+</b><span>{t('st3')}</span></div>
+      <div class="stat"><b>5</b><span>{t('st4')}</span></div>
+    </div>
+  </div>
+
+  <!-- stock -->
+  <section id="stock" class="wrap section stock" data-stock aria-labelledby="stock-title">
+    <div class="sec-head">
+      <div class="sec-head__copy">
+        <span class="eyebrow">{t('stockKicker')}</span>
+        <h2 id="stock-title" class="h2">{t('stockH2')}</h2>
+      </div>
+      <div class="seg" style="--i:0;grid-template-columns:repeat(3,96px)" data-stock-cond role="group" aria-label={t('condition')}>
+        <span class="seg__thumb"></span>
+        <button type="button" aria-pressed="true" data-value="tutte">{t('cAll')}</button>
+        <button type="button" aria-pressed="false" data-value="nuovo">{t('cNew')}</button>
+        <button type="button" aria-pressed="false" data-value="usato">{t('cUsed')}</button>
+      </div>
+    </div>
+
+    <div class="chips" role="group" aria-label={t('category')} data-stock-chips>
+      <button class="chip" type="button" aria-pressed="true" data-value="all">{t('cAll')} <span class="chip__n">{groupCount('all')}</span></button>
+      {GROUPS.map((g) => <button class="chip" type="button" aria-pressed="false" data-value={g.id}>{pick(g.label, lang)} <span class="chip__n">{groupCount(g.id)}</span></button>)}
+    </div>
+
+    <div class="grid4 anim-a" data-stock-grid>
+      {stock.map((m, i) => <MachineCard m={m} lang={lang} index={i} compare />)}
+    </div>
+
+    <div class="empty" data-stock-empty hidden>
+      <h3 class="h3" style="font-size:26px">{t('emptyH')}</h3>
+      <p>{t('emptyP')}</p>
+      <a class="btn btn--dark ripple" href="#contatti">{t('emptyBtn')}</a>
+    </div>
+
+    <div class="stock__foot">
+      <span>{t('alsoOn')}</span>
+      <a class="btn btn--outline ripple link-arrow" href={localize(lang, PATHS.stock)}>
+        <span>{t('allStock', { n: INVENTORY.length })}</span><Icon name="arrow" size={16} class="arrow" />
+      </a>
+    </div>
+
+    <CompareDialog lang={lang} />
+  </section>
+
+  <!-- brands -->
+  <section id="marchi" class="brands" aria-labelledby="brands-title">
+    <div class="wrap section split">
+      <div class="stack" style="gap:28px;min-width:0">
+        <div class="stack">
+          <span class="eyebrow">{t('brandsKicker')}</span>
+          <h2 id="brands-title" class="h2">{t('brandsH2')}</h2>
+        </div>
+        <div class="brandlist" role="tablist" aria-label={t('brandsKicker')} data-brands>
+          {BRANDS.map((b, i) => (
+            <button class="brandrow" type="button" role="tab" aria-selected={i === 0 ? 'true' : 'false'} aria-controls="brand-panel" data-brand={b.id}>
+              <span><b>{b.name}</b><small>{pick(b.cats, lang)}</small></span>
+              <Icon name="arrow" size={20} class="arrow" />
+            </button>
+          ))}
+        </div>
+      </div>
+      <div class="brandview" id="brand-panel" role="tabpanel">
+        <div class="brandview__img">
+          {BRANDS.map((b, i) => <Image class={i === 0 ? 'on' : ''} src={b.img} alt={b.name} widths={[480, 800, 1200]} sizes="(max-width: 960px) 100vw, 55vw" data-brand-img={b.id} loading={i === 0 ? 'eager' : 'lazy'} />)}
+        </div>
+        {BRANDS.map((b, i) => (
+          <div class="brandview__row" data-brand-info={b.id} hidden={i !== 0}>
+            <div class="stack" style="gap:6px">
+              <span class="label">{t('official')} · {pick(b.area, lang)}</span>
+              <p>{pick(b.text, lang)}</p>
+            </div>
+            <a class="btn btn--dark ripple link-arrow" href={`${localize(lang, PATHS.stock)}?brand=${encodeURIComponent(b.filter)}`}>
+              <span>{t('range')} {b.name}</span><Icon name="arrow" size={16} class="arrow" />
+            </a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- rental -->
+  <section id="noleggio" class="on-ink" aria-labelledby="rent-title">
+    <div class="wrap section split2">
+      <div class="stack" style="gap:22px;min-width:0">
+        <span class="eyebrow">{t('navRent')}</span>
+        <h2 id="rent-title" class="h2">{t('rentH2')}</h2>
+        <p class="lead" style="font-size:17px">{t('rentP')}</p>
+        <ul class="checklist">
+          <li><Icon name="check" stroke={2.2} />{t('rentB1')}</li>
+          <li><Icon name="check" stroke={2.2} />{t('rentB2')}</li>
+          <li><Icon name="check" stroke={2.2} />{t('rentB3')}</li>
+        </ul>
+        <a class="textlink link-arrow" href={localize(lang, PATHS.rental)}><span>{t('rentAll')}</span><Icon name="arrow" size={16} class="arrow" /></a>
+      </div>
+
+      <form class="panel-ink ink-field" method="get" action={localize(lang, PATHS.rental)} data-rent-quick aria-label={t('navRent')}>
+        <input type="hidden" name="site" value="1" data-persist />
+        <label class="field" for="r-type">
+          <span class="label">{t('machine')}</span>
+          <span class="select-wrap">
+            <select class="select" id="r-type" name="type" data-persist>
+              {RENT_TYPES.map((r) => <option value={r.id}>{t(r.key)}</option>)}
+            </select>
+            <Icon name="chevron" size={16} />
+          </span>
+        </label>
+        <div class="fields" style="gap:14px">
+          <label class="field" for="r-from"><span class="label">{t('from')}</span><input class="input input--mono" type="date" id="r-from" name="from" data-persist /></label>
+          <label class="field" for="r-to"><span class="label">{t('to')}</span><input class="input input--mono" type="date" id="r-to" name="to" data-persist /></label>
+        </div>
+        <div class="field">
+          <span class="label" id="r-deliv-l">{t('delivery')}</span>
+          <div class="seg seg--ink" style="--i:0" role="group" aria-labelledby="r-deliv-l" data-rent-deliv>
+            <span class="seg__thumb"></span>
+            <button type="button" aria-pressed="true" data-value="1">{t('toSite')}</button>
+            <button type="button" aria-pressed="false" data-value="0">{t('pickup')}</button>
+          </div>
+        </div>
+        <label class="field" for="r-branch" data-rent-branch hidden>
+          <span class="label">{t('pickBranch')}</span>
+          <span class="select-wrap">
+            <select class="select" id="r-branch" name="branch" data-branch-select>
+              {BRANCHES.map((b) => <option value={b.id}>{pick(b.name, lang)}</option>)}
+            </select>
+            <Icon name="chevron" size={16} />
+          </span>
+        </label>
+        <div class="summary">
+          <div class="summary__txt" data-rent-summary-box>
+            <span class="label">{t('summary')}</span>
+            <span style="font-size:15px;font-weight:500" data-rent-summary>—</span>
+          </div>
+          <button class="btn btn--primary ripple sheen" type="submit">{t('checkAvail')}</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- service -->
+  <section id="assistenza" class="wrap section" aria-labelledby="svc-title">
+    <div class="split2">
+      <div class="svc-img">
+        <Image src={service} alt={t('svcAlt')} widths={[480, 800, 1200]} sizes="(max-width: 960px) 100vw, 50vw" />
+        <div class="svc-img__note glass"><b>{t('svcQuote')}</b><span>{t('svcSub')}</span></div>
+      </div>
+      <div class="stack" style="gap:28px;min-width:0">
+        <div class="stack">
+          <span class="eyebrow">{t('svcKicker')}</span>
+          <h2 id="svc-title" class="h2">{t('svcH2')}</h2>
+        </div>
+        <div class="shops" role="radiogroup" aria-labelledby="svc-title" data-shops>
+          {BRANCHES.map((b, i) => (
+            <button class="shop" type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'} data-branch={b.id}>
+              <span class="shop__ring"></span>
+              <span><b>{pick(b.name, lang)}{b.de && <span class="tag-de">DE</span>}</b><small>{pick(b.note, lang)}</small></span>
+              <span class="mono" style="font-size:13px;color:var(--fg-2)">{b.phone}</span>
+            </button>
+          ))}
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <a class="btn btn--primary ripple sheen" href="?topic=svc#contatti" data-book>{t('book', { x: pick(BRANCHES[0].short, lang) })}</a>
+          <a class="btn btn--outline ripple" href={telHref(BRANCHES[0].phone)} data-branch-phone>
+            <Icon name="phone" size={16} /><span class="mono" data-branch-phone-text>{BRANCHES[0].phone}</span>
+          </a>
+        </div>
+        <form class="partform" data-parts>
+          <label for="part" style="font-weight:600">{t('partsLabel')}</label>
+          <div class="partform__row">
+            <input class="input input--mono" id="part" name="part" type="text" placeholder={t('partsPh')} autocomplete="off" required />
+            <button class="btn btn--dark btn--icon ripple" type="submit" aria-label={t('search')}><Icon name="search" /></button>
+          </div>
+          <span class="hint" data-parts-hint aria-live="polite">{t('partsHint')}</span>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- contact -->
+  <section id="contatti" class="contact" aria-labelledby="contact-title">
+    <div class="wrap section split2">
+      <div class="stack" style="gap:24px;min-width:0">
+        <span class="eyebrow">{t('contactKicker')}</span>
+        <h2 id="contact-title" class="h2" style="font-size:56px;line-height:1">{t('slogan')}</h2>
+        <div class="kv">
+          <div><span class="label">{t('phone')}</span><a class="mono" href={telHref(COMPANY.phone)}>{COMPANY.phone}</a></div>
+          <div><span class="label">WhatsApp</span><a class="mono" href={`https://wa.me/${COMPANY.whatsappIntl}`} target="_blank" rel="noopener">{COMPANY.whatsapp}</a></div>
+          <div><span class="label">Email</span><a class="mono" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a></div>
+          <div><span class="label">{t('hq')}</span><span>{COMPANY.street}, {COMPANY.zip} {COMPANY.city} ({COMPANY.province})</span></div>
+        </div>
+      </div>
+
+      <div class="formbox">
+        <form class="form" data-contact novalidate>
+          <input type="hidden" name="topic" value="used" />
+          <div class="chips" role="group" aria-label={t('fMsg')} data-topics>
+            {TOPICS.map((tp) => <button class="chip" type="button" aria-pressed={tp.id === 'used' ? 'true' : 'false'} data-value={tp.id}>{pick(tp.label, lang)}</button>)}
+          </div>
+          <div class="fields" style="gap:14px">
+            <label class="field" for="f-name"><span style="font-size:14px;font-weight:600">{t('fName')}</span><input class="input" id="f-name" name="name" autocomplete="name" required data-persist /></label>
+            <label class="field" for="f-phone"><span style="font-size:14px;font-weight:600">{t('phone')}</span><input class="input input--mono" id="f-phone" name="phone" type="tel" autocomplete="tel" required data-persist /></label>
+          </div>
+          <label class="field" for="f-msg">
+            <span style="font-size:14px;font-weight:600">{t('fMsg')}</span>
+            <textarea class="input" id="f-msg" name="message" rows="4" placeholder={pick(TOPICS[1].ph, lang)} data-persist></textarea>
+          </label>
+          <p class="form-error" data-error hidden></p>
+          <div class="form__foot">
+            <span class="form__note">{t('callback')}: <b data-owner style="font-weight:600;color:var(--fg-2)">{pick(TOPICS[1].owner, lang)}</b>. <a href={localize(lang, PATHS.privacy)}>{t('privacyConsent')}</a></span>
+            <button class="btn btn--primary btn--lg ripple sheen" type="submit">{t('send')}</button>
+          </div>
+        </form>
+        <div class="done" data-done hidden role="status">
+          <span class="done__icon"><Icon name="check" size={24} stroke={2.4} /></span>
+          <h3 class="h3" style="font-size:30px" data-done-title></h3>
+          <p data-done-text></p>
+          <button class="btn btn--outline ripple" type="button" data-done-reset>{t('newReq')}</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script type="application/json" id="home-data" set:html={JSON.stringify({ i18n, items: heroCounts, fleet: fleetCounts, rentAction: localize(lang, PATHS.rental), stockAction: localize(lang, PATHS.stock) })} />
+  <script>
+    import '../../scripts/home';
+  </script>
+</Base>

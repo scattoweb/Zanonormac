@@ -1,0 +1,57 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { useT, type Lang } from '../../../i18n/ui';
+import { PATHS, langPaths } from '../../../i18n/utils';
+import { COMPANY } from '../../../data/company';
+
+export const getStaticPaths = langPaths;
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+
+const company = `${COMPANY.name}, ${COMPANY.street}, ${COMPANY.zip} ${COMPANY.city} (${COMPANY.province}), P.IVA ${COMPANY.vat}, ${COMPANY.email}`;
+const copy = {
+  it: {
+    h1: 'Informativa privacy',
+    sections: [
+      ['Titolare del trattamento', company],
+      ['Quali dati raccogliamo', 'Solo i dati che inserisci nei moduli del sito: nome e azienda, telefono, email, indirizzo del cantiere e il testo della richiesta.'],
+      ['Perché li usiamo', 'Per rispondere alla tua richiesta di preventivo, noleggio, assistenza o ricambi (art. 6.1.b GDPR). Non li usiamo per pubblicità e non li cediamo a terzi.'],
+      ['Come arrivano a noi', 'Il modulo invia la richiesta al nostro servizio di posta per moduli oppure apre WhatsApp con il messaggio già scritto: in quel caso si applica anche l’informativa di WhatsApp.'],
+      ['Cookie e memoria del browser', 'Il sito non usa cookie di profilazione né strumenti di statistica. Salva nel tuo browser solo la sede scelta, la lingua e le macchine nei preferiti, per mostrarti il sito come l’hai lasciato. I caratteri tipografici sono ospitati sul nostro server.'],
+      ['Per quanto tempo', 'Conserviamo le richieste per il tempo necessario a gestirle e per gli obblighi di legge collegati a un eventuale contratto.'],
+      ['I tuoi diritti', 'Puoi chiedere accesso, rettifica, cancellazione o limitazione dei tuoi dati scrivendo a ' + COMPANY.email + '. Puoi anche presentare reclamo al Garante per la protezione dei dati personali.'],
+    ],
+  },
+  de: {
+    h1: 'Datenschutzerklärung',
+    sections: [
+      ['Verantwortlicher', company],
+      ['Welche Daten wir erheben', 'Nur die Daten, die Sie in die Formulare eingeben: Name und Firma, Telefon, E-Mail, Baustellenadresse und den Text Ihrer Anfrage.'],
+      ['Wozu wir sie nutzen', 'Um Ihre Anfrage zu Angebot, Miete, Service oder Ersatzteilen zu beantworten (Art. 6 Abs. 1 lit. b DSGVO). Keine Werbung, keine Weitergabe an Dritte.'],
+      ['Wie sie uns erreichen', 'Das Formular sendet die Anfrage an unseren Formulardienst oder öffnet WhatsApp mit der fertigen Nachricht; dann gilt zusätzlich die Datenschutzerklärung von WhatsApp.'],
+      ['Cookies und Browserspeicher', 'Die Website verwendet keine Tracking-Cookies und keine Statistik-Tools. Im Browser werden nur der gewählte Standort, die Sprache und die gemerkten Maschinen gespeichert. Die Schriften liegen auf unserem eigenen Server.'],
+      ['Speicherdauer', 'Anfragen bewahren wir so lange auf, wie es für ihre Bearbeitung und die gesetzlichen Pflichten aus einem möglichen Vertrag nötig ist.'],
+      ['Ihre Rechte', 'Auskunft, Berichtigung, Löschung oder Einschränkung erhalten Sie per E-Mail an ' + COMPANY.email + '. Sie können sich auch bei der italienischen Datenschutzbehörde (Garante) beschweren.'],
+    ],
+  },
+  en: {
+    h1: 'Privacy notice',
+    sections: [
+      ['Data controller', company],
+      ['What we collect', 'Only what you type into the site’s forms: name and company, phone, email, site address and the text of your request.'],
+      ['Why we use it', 'To answer your request for a quote, rental, service or parts (Art. 6(1)(b) GDPR). We do not use it for advertising or share it with third parties.'],
+      ['How it reaches us', 'The form sends your request to our form service or opens WhatsApp with the message ready; in that case WhatsApp’s privacy policy also applies.'],
+      ['Cookies and browser storage', 'The site uses no tracking cookies and no analytics. It only stores your chosen branch, language and saved machines in your browser. Fonts are served from our own server.'],
+      ['How long', 'We keep requests for as long as needed to handle them and to meet legal duties linked to any resulting contract.'],
+      ['Your rights', 'You can ask for access, correction, deletion or restriction of your data by writing to ' + COMPANY.email + '. You can also complain to the Italian data protection authority (Garante).'],
+    ],
+  },
+}[lang];
+---
+<Base lang={lang} path={PATHS.privacy} title={`${copy.h1} · Zanon & Ormac`} description={copy.h1}>
+  <div class="wrap prose">
+    <h1 class="h1" style="font-size:48px">{copy.h1}</h1>
+    {copy.sections.map(([h, p]) => (<><h2>{h}</h2><p>{p}</p></>))}
+    <p style="margin-top:40px"><a class="textlink" href={`/${lang}/`}>{t('backHome')}</a></p>
+  </div>
+</Base>

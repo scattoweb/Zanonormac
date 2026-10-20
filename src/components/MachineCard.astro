@@ -1,0 +1,65 @@
+---
+import { Image } from 'astro:assets';
+import Icon from './Icon.astro';
+import { useT, type Lang } from '../i18n/ui';
+import { localize, machinePath } from '../i18n/utils';
+import { machineView } from '../lib/format';
+import type { Machine } from '../data/inventory';
+
+interface Props {
+  m: Machine;
+  lang: Lang;
+  index?: number;
+  compare?: boolean;
+  sizes?: string;
+}
+
+const { m, lang, index = 0, compare = false, sizes = '(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 25vw' } = Astro.props;
+const t = useT(lang);
+const v = machineView(m, lang);
+const href = localize(lang, machinePath(m.slug));
+const dotClass = m.status === 'ready' ? 'dot dot--live' : `dot dot--${m.status}`;
+---
+<article
+  class="card"
+  style={`--i:${index}`}
+  data-machine
+  data-id={m.slug}
+  data-name={m.name.toLowerCase()}
+  data-group={m.group}
+  data-brand={m.brand}
+  data-cond={m.cond}
+  data-year={m.year}
+  data-hours={m.hours}
+  data-price={m.price ?? ''}
+  data-branch={m.branch}
+  data-status={m.status}
+  data-added={m.added}
+>
+  <div class="card__media">
+    <Image src={m.images[0]} alt={m.name} widths={[400, 640, 900]} sizes={sizes} loading={index < 4 ? 'eager' : 'lazy'} />
+    <span class="badge"><span class={dotClass}></span>{v.status}</span>
+    <button class="heart" type="button" data-fav={m.slug} data-label-on={`${t('favAdd')}: ${m.name}`} data-label-off={`${t('favDel')}: ${m.name}`} aria-pressed="false" aria-label={`${t('favAdd')}: ${m.name}`}>
+      <Icon name="heart" size={18} />
+    </button>
+  </div>
+  <div class="card__main">
+    <div class="card__body">
+      <span class="label">{v.category}</span>
+      <h3 class="h3"><a class="card__stretch" href={href} style="text-decoration:none">{m.name}</a></h3>
+      <span class="card__specs">{v.specs}</span>
+      <div class="card__price"><b>{v.price}</b><span>{v.vat}</span></div>
+    </div>
+    <div class="card__foot">
+      {compare ? (
+        <label class="check-inline">
+          <input type="checkbox" data-compare={m.slug} />
+          <span>{t('compare')}</span>
+        </label>
+      ) : <span />}
+      <a class="card__link link-arrow" href={href} tabindex="-1" aria-hidden="true">
+        <span>{t('details')}</span><Icon name="arrow" size={16} class="arrow" />
+      </a>
+    </div>
+  </div>
+</article>

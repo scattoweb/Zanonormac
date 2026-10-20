@@ -1,0 +1,35 @@
+---
+import Icon from './Icon.astro';
+import { useT, type Lang } from '../i18n/ui';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const t = useT(lang);
+const rows = {
+  category: t('category'),
+  year: t('year'),
+  hours: t('hours'),
+  location: t('location'),
+  price: t('price'),
+};
+---
+<div class="cmpbar" data-cmpbar hidden role="status">
+  <span class="cmpbar__txt"><b data-cmp-count></b> <span data-cmp-names></span></span>
+  <div style="display:flex;gap:6px">
+    <button class="btn btn--ghost-ink ripple" type="button" data-cmp-clear>{t('cancel')}</button>
+    <button class="btn btn--light ripple" type="button" data-cmp-open>{t('compare')}</button>
+  </div>
+</div>
+
+<dialog class="dialog" data-cmp-dialog aria-labelledby="cmp-title">
+  <div class="dialog__head">
+    <h2 id="cmp-title" class="h3" style="font-size:28px">{t('compareH')}</h2>
+    <button class="roundbtn" type="button" style="background:var(--paper-3)" aria-label={t('close')} data-cmp-close><Icon name="x" size={18} /></button>
+  </div>
+  <div class="dialog__body"><table class="cmptable" data-cmp-table></table></div>
+</dialog>
+
+<script type="application/json" data-cmp-i18n set:html={JSON.stringify({ selN: t('selN'), sel1: t('sel1'), rows, details: t('details') })} />
+<script>
+  import '../scripts/compare';
+</script>

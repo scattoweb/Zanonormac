@@ -1,0 +1,171 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Icon from '../../../components/Icon.astro';
+import MachineCard from '../../../components/MachineCard.astro';
+import CompareDialog from '../../../components/CompareDialog.astro';
+import { pick, useT, type Lang } from '../../../i18n/ui';
+import { PATHS, langPaths, localize } from '../../../i18n/utils';
+import { BRANCHES } from '../../../data/company';
+import { BRAND_IDS, GROUPS, INVENTORY } from '../../../data/inventory';
+
+export const getStaticPaths = langPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const list = [...INVENTORY].sort((a, b) => b.added - a.added);
+const ready = INVENTORY.filter((m) => m.status === 'ready').length;
+
+const i18n = {
+  count: t('count'), count1: t('count1'), readyShort: t('readyShort'), filters: t('filters'),
+  anyShort: t('anyShort'), yearFrom: t('yearFrom'), removeF: t('removeF'), onlyReady: t('onlyReady'),
+  cNew: t('cNew'), cUsed: t('cUsed'), savedOk: t('savedOk'), sendError: t('sendError'),
+  groups: Object.fromEntries(GROUPS.map((g) => [g.id, pick(g.label, lang)])),
+  brands: Object.fromEntries(BRAND_IDS.map((b) => [b, b === 'Altre' ? t('otherBrands') : b])),
+  branches: Object.fromEntries(BRANCHES.map((b) => [b.id, pick(b.short, lang)])),
+};
+---
+<Base lang={lang} path={PATHS.stock} section="stock"
+  title={`${t('stockH1')} · Zanon & Ormac`}
+  description={lang === 'de' ? 'Neue und gebrauchte Baumaschinen sofort verfügbar: Volvo CE, Bobcat, Mecalac, Terex Fuchs, Keestrack.' : lang === 'en' ? 'New and used earthmoving machines ready to deliver: Volvo CE, Bobcat, Mecalac, Terex Fuchs, Keestrack.' : 'Macchine movimento terra nuove e usate in pronta consegna: Volvo CE, Bobcat, Mecalac, Terex Fuchs, Keestrack.'}>
+
+  <div class="wrap page-head">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={localize(lang, '/')}>{t('home')}</a><span aria-hidden="true">/</span><span aria-current="page">{t('stockH1')}</span>
+    </nav>
+    <div class="toolbar">
+      <div class="stack" style="gap:6px">
+        <h1 class="h1 h1--page">{t('stockH1')}</h1>
+        <p style="margin:0;color:var(--muted-2)" aria-live="polite"><b style="color:var(--fg)" data-count>{t('count', { n: list.length })}</b> · <span data-ready>{t('readyShort', { n: ready })}</span></p>
+      </div>
+      <div class="toolbar__tools">
+        <button class="btn btn--outline filterbtn ripple" type="button" aria-controls="filters" aria-expanded="false" data-filters-open style="background:var(--white)">
+          <Icon name="filter" size={16} /><span data-filters-label>{t('filters')}</span>
+        </button>
+        <label class="sortsel" for="sort">
+          <span class="label">{t('sortBy')}</span>
+          <span class="select-wrap">
+            <select class="select" id="sort" name="sort">
+              <option value="recent">{t('sRecent')}</option>
+              <option value="priceAsc">{t('sPriceAsc')}</option>
+              <option value="priceDesc">{t('sPriceDesc')}</option>
+              <option value="hours">{t('sHours')}</option>
+              <option value="year">{t('sYear')}</option>
+            </select>
+            <Icon name="chevron" size={16} />
+          </span>
+        </label>
+        <div class="seg viewseg" role="group" aria-label={t('view')} style="--i:0" data-view>
+          <span class="seg__thumb"></span>
+          <button type="button" aria-pressed="true" data-value="grid" aria-label={t('vGrid')}><Icon name="grid" /></button>
+          <button type="button" aria-pressed="false" data-value="list" aria-label={t('vList')}><Icon name="list" /></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap layout">
+    <aside class="filters" id="filters" aria-label={t('filters')} data-filters>
+      <div class="filters__head">
+        <b class="h3">{t('filters')}</b>
+        <button class="roundbtn" type="button" style="background:var(--white)" aria-label={t('close')} data-filters-close><Icon name="x" /></button>
+      </div>
+      <form class="filters__box" data-filter-form onsubmit="return false">
+        <label class="searchbox" for="q">
+          <span class="sr-only">{t('searchModel')}</span>
+          <Icon name="search" size={16} />
+          <input class="input" id="q" name="q" type="search" placeholder={t('searchPh')} autocomplete="off" />
+        </label>
+
+        <div class="field">
+          <span class="label" id="cond-l">{t('condition')}</span>
+          <div class="seg" role="group" aria-labelledby="cond-l" style="--i:0;background:var(--paper-3)" data-cond>
+            <span class="seg__thumb"></span>
+            <button type="button" aria-pressed="true" data-value="">{t('cAll')}</button>
+            <button type="button" aria-pressed="false" data-value="nuovo">{t('cNew')}</button>
+            <button type="button" aria-pressed="false" data-value="usato">{t('cUsed')}</button>
+          </div>
+        </div>
+
+        <div class="switchrow">
+          <span id="ready-l">{t('onlyReady')}</span>
+          <button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="ready-l" data-ready-switch></button>
+        </div>
+
+        <fieldset>
+          <legend class="label">{t('category')}</legend>
+          {GROUPS.map((g) => (
+            <label class="opt"><input type="checkbox" name="cat" value={g.id} /><span>{pick(g.label, lang)}</span><span class="mono" data-n></span></label>
+          ))}
+        </fieldset>
+
+        <fieldset>
+          <legend class="label">{t('brand')}</legend>
+          {BRAND_IDS.map((b) => (
+            <label class="opt"><input type="checkbox" name="brand" value={b} /><span>{b === 'Altre' ? t('otherBrands') : b}</span><span class="mono" data-n></span></label>
+          ))}
+        </fieldset>
+
+        <label class="field" for="year">
+          <span class="label">{t('yearFrom')}</span>
+          <span class="select-wrap">
+            <select class="select input--mono" id="year" name="year" style="height:44px">
+              <option value="">{t('any')}</option>
+              {[2010, 2015, 2020, 2025].map((y) => <option value={y}>{y}</option>)}
+            </select>
+            <Icon name="chevron" size={16} />
+          </span>
+        </label>
+
+        <label class="field" for="hours">
+          <span class="rangehead"><span class="label">{t('maxHours')}</span><span class="mono" data-hours-out>{t('anyShort')}</span></span>
+          <input class="range" id="hours" name="hours" type="range" min="1000" max="12000" step="500" value="12000" />
+        </label>
+
+        <label class="field" for="price">
+          <span class="rangehead"><span class="label">{t('maxPrice')}</span><span class="mono" data-price-out>{t('anyShort')}</span></span>
+          <input class="range" id="price" name="price" type="range" min="20000" max="150000" step="5000" value="150000" />
+          <span class="hint" style="font-size:12px">{t('priceNote')}</span>
+        </label>
+
+        <fieldset>
+          <legend class="label">{t('branches')}</legend>
+          {BRANCHES.map((b) => (
+            <label class="opt"><input type="checkbox" name="branch" value={b.id} /><span>{pick(b.name, lang)}</span><span class="mono" data-n></span></label>
+          ))}
+        </fieldset>
+
+        <button class="btn btn--outline ripple" type="button" data-reset style="border-color:var(--line-2)">{t('reset')}</button>
+        <div class="filters__apply"><button class="btn btn--dark btn--lg btn--block ripple" type="button" data-filters-close><span data-apply-label>{t('showResults')}</span></button></div>
+      </form>
+    </aside>
+
+    <div class="results-wrap">
+      <div class="active-filters" data-active hidden></div>
+      <div class="results anim-a" data-results>
+        {list.map((m, i) => <MachineCard m={m} lang={lang} index={i} compare sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 30vw" />)}
+      </div>
+      <div class="empty" data-empty hidden>
+        <h2 class="h3" style="font-size:28px">{t('noResH')}</h2>
+        <p>{t('noResP')}</p>
+        <button class="btn btn--dark ripple" type="button" data-reset>{t('reset')}</button>
+      </div>
+
+      <CompareDialog lang={lang} />
+
+      <div class="savebox">
+        <div class="savebox__copy"><b>{t('saveH')}</b><span>{t('saveP')}</span></div>
+        <form data-save novalidate>
+          <label class="sr-only" for="save-mail">Email</label>
+          <input class="input" id="save-mail" name="email" type="email" placeholder="email@azienda.it" autocomplete="email" required />
+          <button class="btn btn--primary ripple" type="submit">{t('saveBtn')}</button>
+        </form>
+        <span class="saved-ok" data-saved hidden><span><Icon name="check" size={16} stroke={2.6} /></span>{t('savedOk')}</span>
+      </div>
+    </div>
+  </div>
+
+  <script type="application/json" id="cat-data" set:html={JSON.stringify(i18n)} />
+  <script>
+    import '../../../scripts/catalog';
+  </script>
+</Base>

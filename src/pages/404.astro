@@ -1,0 +1,16 @@
+---
+import Base from '../layouts/Base.astro';
+import { useT } from '../i18n/ui';
+const t = useT('it');
+---
+<Base lang="it" path="/" title={`${t('notFoundH')} · Zanon & Ormac`} description={t('notFoundP')} noindex>
+  <div class="wrap" style="padding-top:96px;padding-bottom:120px;display:flex;flex-direction:column;gap:18px;align-items:flex-start">
+    <span class="eyebrow">404</span>
+    <h1 class="h1" style="font-size:52px">{t('notFoundH')}</h1>
+    <p class="lead">{t('notFoundP')}</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="btn btn--primary ripple" href="/it/">{t('backHome')}</a>
+      <a class="btn btn--outline ripple" href="/it/macchine/">{t('navStock')}</a>
+    </div>
+  </div>
+</Base>

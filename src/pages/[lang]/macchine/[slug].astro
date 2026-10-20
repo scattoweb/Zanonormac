@@ -1,0 +1,238 @@
+---
+import { Image, getImage } from 'astro:assets';
+import Base from '../../../layouts/Base.astro';
+import Icon from '../../../components/Icon.astro';
+import MachineCard from '../../../components/MachineCard.astro';
+import { LANGS, pick, useT, type Lang } from '../../../i18n/ui';
+import { PATHS, localize, machinePath } from '../../../i18n/utils';
+import { COMPANY, branchById, telHref } from '../../../data/company';
+import { INVENTORY, TYPES, contactFor, type Machine } from '../../../data/inventory';
+import { machineView, num, waLink } from '../../../lib/format';
+
+export function getStaticPaths() {
+  return LANGS.flatMap((lang) => INVENTORY.map((m) => ({ params: { lang, slug: m.slug }, props: { m } })));
+}
+
+const { m } = Astro.props as { m: Machine };
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const v = machineView(m, lang);
+const branch = branchById(m.branch);
+const person = contactFor(m);
+const used = m.cond === 'usato';
+const msgs = ['waMsg1', 'waMsg2', 'waMsg3'] as const;
+const messages = msgs.map((k) => t(k, { m: `${m.name}${used ? ' ' + m.year : ''}`, r: `${t('ref')} ${m.ref}` }));
+const similar = INVENTORY.filter((x) => x.slug !== m.slug && x.group === m.group)
+  .concat(INVENTORY.filter((x) => x.slug !== m.slug && x.group !== m.group && x.cond === m.cond))
+  .slice(0, 3);
+const checks = [
+  { it: 'Motore e trasmissione', de: 'Motor und Antrieb', en: 'Engine and transmission' },
+  { it: 'Impianto idraulico', de: 'Hydraulik', en: 'Hydraulic system' },
+  { it: 'Assali, freni e sottocarro', de: 'Achsen, Bremsen und Fahrwerk', en: 'Axles, brakes and undercarriage' },
+  { it: 'Braccio, perni e boccole', de: 'Ausleger, Bolzen und Buchsen', en: 'Boom, pins and bushings' },
+  { it: 'Cabina ed elettronica', de: 'Kabine und Elektronik', en: 'Cab and electronics' },
+  { it: 'Tagliando prima della consegna', de: 'Inspektion vor Auslieferung', en: 'Service before delivery' },
+];
+const specs: [string, string][] = [
+  [t('brand'), m.brand === 'Altre' ? m.name.split(' ')[0] : m.brand],
+  [t('machine'), m.name],
+  [t('category'), pick(TYPES[m.type], lang)],
+  [t('year'), String(m.year)],
+  [t('hours'), used ? `${num(m.hours)} h` : t('isNew')],
+  [t('weight'), `${num(m.weightKg)} kg`],
+  ['kW', `${m.powerKw} kW`],
+  [t('location'), pick(branch.name, lang)],
+  ...m.features.map((f, i) => [i === 0 ? t('equipment') : '', pick(f, lang)] as [string, string]),
+];
+const TAN = 5.9;
+const ogImg = await getImage({ src: m.images[0], width: 1200, format: 'jpg' });
+const productLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: m.name,
+  sku: m.ref,
+  brand: { '@type': 'Brand', name: m.brand === 'Altre' ? m.name.split(' ')[0] : m.brand },
+  itemCondition: used ? 'https://schema.org/UsedCondition' : 'https://schema.org/NewCondition',
+  image: new URL(ogImg.src, Astro.site).href,
+  ...(m.price ? { offers: { '@type': 'Offer', price: m.price, priceCurrency: 'EUR', availability: m.status === 'reserved' ? 'https://schema.org/LimitedAvailability' : m.status === 'incoming' ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock', seller: { '@type': 'Organization', name: COMPANY.name } } } : {}),
+};
+const title = `${m.name}${used ? ' ' + m.year : ''} · ${v.category} · Zanon & Ormac`;
+const desc = `${v.category}, ${v.specs}. ${v.price}${v.vat ? ' ' + v.vat : ''}.`;
+const ctxData = { price: m.price, tan: TAN, messages, wa: COMPANY.whatsappIntl, copied: t('linkCopied'), share: t('share') };
+---
+<Base lang={lang} path={machinePath(m.slug)} section="stock" title={title} description={desc} bodyClass="has-mbar">
+  <script slot="head" type="application/ld+json" set:html={JSON.stringify(productLd)} />
+
+  <div class="wrap page-head">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a class="link-arrow" href={localize(lang, PATHS.stock)} style="display:inline-flex;gap:6px;align-items:center;color:var(--fg);font-weight:600"><Icon name="back" size={16} />{t('backResults')}</a>
+      <span aria-hidden="true">·</span>
+      <a href={`${localize(lang, PATHS.stock)}?cond=${m.cond}`}>{used ? t('navUsed') : t('navNew')}</a><span aria-hidden="true">/</span>
+      <a href={`${localize(lang, PATHS.stock)}?cat=${m.group}`}>{pick(TYPES[m.type], lang)}</a><span aria-hidden="true">/</span>
+      <span aria-current="page">{m.name}</span>
+    </nav>
+  </div>
+
+  <div class="wrap" style="padding-top:24px;padding-bottom:96px">
+    <div class="mtop">
+      <div class="gallery" data-gallery>
+        <div class="gallery__stage" data-stage>
+          {m.images.map((img, i) => <Image class={i === 0 ? 'on' : ''} src={img} alt={`${m.name}, ${t('photo')} ${i + 1}/${m.images.length}`} widths={[640, 960, 1280]} sizes="(max-width: 960px) 100vw, 58vw" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : undefined} data-slide={i} />)}
+          <span class="badge"><span class={m.status === 'ready' ? 'dot dot--live' : `dot dot--${m.status}`}></span>{v.status} · {pick(branch.short, lang)}</span>
+          {m.images.length > 1 && (
+            <>
+              <span class="gallery__count" data-counter>1 / {m.images.length}</span>
+              <div class="gallery__nav">
+                <button class="roundbtn" type="button" aria-label={t('prevPhoto')} data-prev><Icon name="left" /></button>
+                <button class="roundbtn" type="button" aria-label={t('nextPhoto')} data-next><Icon name="right" /></button>
+              </div>
+            </>
+          )}
+        </div>
+        {m.images.length > 1 && (
+          <div class="thumbs" role="group" aria-label={t('photo')}>
+            {m.images.map((img, i) => (
+              <button type="button" aria-label={t('showPhoto', { x: i + 1 })} aria-current={i === 0 ? 'true' : 'false'} data-thumb={i}>
+                <Image src={img} alt="" widths={[200]} sizes="120px" loading="lazy" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <aside class="buybox">
+        <div class="stack" style="gap:10px">
+          <div class="buybox__top">
+            <span class="label" style="font-size:12px">{v.category} · {t('ref')} {m.ref}</span>
+            <div class="buybox__tools">
+              <button class="heart heart--static" type="button" data-fav={m.slug} data-label-on={t('favAdd')} data-label-off={t('favDel')} aria-pressed="false" aria-label={t('favAdd')}><Icon name="heart" /></button>
+              <button class="pillbtn" type="button" data-share><Icon name="link" size={16} /><span data-share-label>{t('share')}</span></button>
+            </div>
+          </div>
+          <h1 class="h1 h1--page">{m.name}</h1>
+        </div>
+
+        <div class="facts">
+          <div><span class="label">{t('year')}</span><b>{m.year}</b></div>
+          <div><span class="label">{t('hours')}</span><b>{used ? `${num(m.hours)} h` : t('isNew')}</b></div>
+          <div><span class="label">{t('weight')}</span><b>{(m.weightKg / 1000).toLocaleString('it-IT', { maximumFractionDigits: 1 })} t</b></div>
+          <div><span class="label">{t('location')}</span><b style="font:600 16px var(--f-body)">{pick(branch.name, lang)}</b></div>
+        </div>
+
+        <div class="price-row">
+          <b>{v.price} {v.vat && <small>{v.vat}</small>}</b>
+          {used && <span style="font-size:14px;color:var(--muted-2)">{t('tradePossible')}</span>}
+        </div>
+
+        <div class="cta-col">
+          <a class="btn btn--primary btn--lg ripple sheen" href={waLink(COMPANY.whatsappIntl, messages[0])} target="_blank" rel="noopener"><Icon name="chat" />{t('waWrite')}</a>
+          <div class="cta-2">
+            <a class="btn btn--outline ripple" href={telHref(branch.phone)}><Icon name="phone" size={16} />{t('call')}</a>
+            <a class="btn btn--outline ripple" href={`${localize(lang, '/')}?topic=${used ? 'used' : 'new'}#contatti`}>{t('writtenOffer')}</a>
+          </div>
+        </div>
+
+        <div class="person">
+          <div class="person__head">
+            <span class="avatar" aria-hidden="true">{person ? person.name.split(' ').map((p) => p[0]).join('') : 'ZO'}</span>
+            <span style="display:flex;flex-direction:column;line-height:1.3">
+              <b style="font-weight:600">{person ? person.name : t('salesTeam')}</b>
+              <span style="font-size:13px;color:var(--muted)">{person ? pick(person.role, lang) : `${pick(branch.name, lang)} · ${branch.phone}`}</span>
+            </span>
+          </div>
+          <div class="bubble"><span class="label">{t('readyMsg')}</span>{messages[0]}</div>
+        </div>
+      </aside>
+    </div>
+
+    <section style="margin-top:56px">
+      <div class="tabs" role="tablist" aria-label={m.name} data-tabs>
+        <button type="button" role="tab" id="tab-specs" aria-controls="panel-specs" aria-selected="true" data-tab="specs">{t('tabSpecs')}</button>
+        {used && <button type="button" role="tab" id="tab-checks" aria-controls="panel-checks" aria-selected="false" tabindex="-1" data-tab="checks">{t('tabChecks')}</button>}
+      </div>
+      <div class="mtop" style="padding-top:32px">
+        <div style="min-width:0">
+          <div id="panel-specs" role="tabpanel" aria-labelledby="tab-specs" data-panel="specs">
+            <dl class="specs">
+              {specs.map(([k, val]) => <div><dt>{k}</dt><dd>{val}</dd></div>)}
+            </dl>
+          </div>
+          {used && (
+            <div id="panel-checks" role="tabpanel" aria-labelledby="tab-checks" data-panel="checks" hidden>
+              <p style="margin:0 0 16px;color:var(--muted-2);max-width:60ch">{t('checksIntro')}</p>
+              <ul class="checks">
+                {checks.map((c) => <li><span><Icon name="check" size={14} stroke={2.6} /></span><span style="font-weight:500">{pick(c, lang)}</span></li>)}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {m.price ? (
+          <form class="fin ink-field" data-fin onsubmit="return false" aria-labelledby="fin-title">
+            <div class="stack" style="gap:4px">
+              <span class="eyebrow eyebrow--light">{t('finKicker')}</span>
+              <span id="fin-title" class="h3" style="font-size:26px">{t('finH')}</span>
+            </div>
+            <label class="field" for="down">
+              <span class="rangehead" style="color:var(--on-ink-muted);font-size:14px"><span>{t('downPay')}</span><span class="mono" style="color:var(--on-ink)" data-down-out>20%</span></span>
+              <input class="range" id="down" type="range" min="0" max="50" step="5" value="20" style="accent-color:var(--accent-on-ink)" />
+            </label>
+            <div class="field">
+              <span style="font-size:14px;color:var(--on-ink-muted)" id="term-l">{t('term')}</span>
+              <div class="seg seg--ink fin__terms" role="group" aria-labelledby="term-l" style="--i:2" data-terms>
+                <span class="seg__thumb"></span>
+                {[24, 36, 48, 60].map((n) => <button type="button" aria-pressed={n === 48 ? 'true' : 'false'} data-value={n}>{n} {t('months')}</button>)}
+              </div>
+            </div>
+            <div class="fin__out">
+              <div class="stack" style="gap:2px">
+                <span class="label" style="color:var(--on-ink-muted)">{t('monthly')}</span>
+                <b><span data-rata>—</span><small> {t('perMonth')}</small></b>
+              </div>
+              <a class="btn btn--light ripple" href={`${localize(lang, '/')}?topic=${used ? 'used' : 'new'}#contatti`}>{t('askProposal')}</a>
+            </div>
+            <span class="fin__note" data-fin-note data-template={t('finNote', { r: TAN.toLocaleString('it-IT') })}></span>
+          </form>
+        ) : <div />}
+      </div>
+    </section>
+
+    <section class="trade">
+      <div><b>{t('tradeH')}</b><span>{t('tradeP')}</span></div>
+      <a class="btn btn--dark ripple link-arrow" href={`${localize(lang, '/')}?topic=sell#contatti`}><span>{t('tradeBtn')}</span><Icon name="arrow" size={16} class="arrow" /></a>
+    </section>
+
+    <section style="margin-top:72px;display:flex;flex-direction:column;gap:24px" aria-labelledby="sim-title">
+      <div class="sec-head">
+        <h2 id="sim-title" class="h2" style="font-size:36px">{t('similar')}</h2>
+        <a class="textlink link-arrow" href={localize(lang, PATHS.stock)}><span>{t('allSimilar')}</span><Icon name="arrow" size={16} class="arrow" /></a>
+      </div>
+      <div class="grid3">
+        {similar.map((s, i) => <MachineCard m={s} lang={lang} index={i} sizes="(max-width: 620px) 100vw, 33vw" />)}
+      </div>
+    </section>
+  </div>
+
+  <div class="mbar" slot="after">
+    <a class="btn btn--outline btn--icon ripple" style="height:54px;width:54px" href={telHref(branch.phone)} aria-label={`${t('call')} ${branch.phone}`}><Icon name="phone" size={20} /></a>
+    <button class="btn btn--primary ripple" type="button" data-sheet-open><Icon name="chat" />{t('waAsk')}</button>
+  </div>
+
+  <dialog class="sheet" slot="after" data-sheet aria-labelledby="sheet-title">
+    <span class="sheet__grip" aria-hidden="true"></span>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+      <span id="sheet-title" class="h3">{person ? t('writeTo', { x: person.name }) : t('waWrite')}</span>
+      <button class="roundbtn" type="button" style="background:var(--paper)" aria-label={t('close')} data-sheet-close><Icon name="x" size={16} /></button>
+    </div>
+    <p style="margin:8px 0 14px;font-size:14px;color:var(--muted)">{t('chooseMsg')}</p>
+    <div class="stack" style="gap:8px" role="group" aria-label={t('chooseMsg')}>
+      {messages.map((msg, i) => <button class="msgopt" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-msg={i}>{msg}</button>)}
+    </div>
+    <a class="btn btn--primary btn--lg btn--block ripple" style="margin-top:16px" href={waLink(COMPANY.whatsappIntl, messages[0])} target="_blank" rel="noopener" data-sheet-wa>{t('openWa')}</a>
+  </dialog>
+
+  <script type="application/json" id="machine-data" slot="after" set:html={JSON.stringify(ctxData)} />
+  <script>
+    import '../../../scripts/machine';
+  </script>
+</Base>

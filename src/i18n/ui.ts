@@ -1,0 +1,347 @@
+export const LANGS = ['it', 'de', 'en'] as const;
+export type Lang = (typeof LANGS)[number];
+export type Tri = Record<Lang, string>;
+
+export const HTML_LANG: Record<Lang, string> = { it: 'it-IT', de: 'de-DE', en: 'en-GB' };
+
+const tri = (it: string, de: string, en: string): Tri => ({ it, de, en });
+
+export const ui = {
+  // header / nav
+  yourBranch: tri('La tua sede', 'Ihr Standort', 'Your branch'),
+  navStock: tri('Parco macchine', 'Maschinenbestand', 'Machine stock'),
+  navNew: tri('Nuovo', 'Neu', 'New'),
+  navUsed: tri('Usato', 'Gebraucht', 'Used'),
+  navRent: tri('Noleggio', 'Miete', 'Rental'),
+  navService: tri('Assistenza', 'Service', 'Service'),
+  navParts: tri('Ricambi', 'Ersatzteile', 'Parts'),
+  navAbout: tri('Chi siamo', 'Über uns', 'About us'),
+  navContact: tri('Contatti', 'Kontakt', 'Contact'),
+  quote: tri('Richiedi preventivo', 'Angebot anfordern', 'Request a quote'),
+  menu: tri('Menu', 'Menü', 'Menu'),
+  closeMenu: tri('Chiudi menu', 'Menü schließen', 'Close menu'),
+  langLabel: tri('Lingua', 'Sprache', 'Language'),
+  skip: tri('Vai al contenuto', 'Zum Inhalt springen', 'Skip to content'),
+  home: tri('Home', 'Startseite', 'Home'),
+
+  // home hero
+  kicker: tri('Dal 1964 · Lombardia e Trentino-Alto Adige', 'Seit 1964 · Lombardei und Trentino-Südtirol', 'Since 1964 · Lombardy and Trentino-South Tyrol'),
+  h1: tri('Macchine movimento terra, pronte per il tuo cantiere.', 'Baumaschinen, bereit für Ihre Baustelle.', 'Earthmoving machines, ready for your job site.'),
+  lead: tri(
+    'Nuovo e usato garantito, noleggio e assistenza in officina per Volvo CE, Bobcat, Mecalac, Terex Fuchs e Keestrack.',
+    'Neu- und geprüfte Gebrauchtmaschinen, Miete und Werkstattservice für Volvo CE, Bobcat, Mecalac, Terex Fuchs und Keestrack.',
+    'New and inspected used machines, rental and workshop service for Volvo CE, Bobcat, Mecalac, Terex Fuchs and Keestrack.'
+  ),
+  search: tri('Cerca macchine', 'Maschinen suchen', 'Search machines'),
+  category: tri('Categoria', 'Kategorie', 'Category'),
+  brand: tri('Marca', 'Marke', 'Brand'),
+  allCats: tri('Tutte le categorie', 'Alle Kategorien', 'All categories'),
+  allBrands: tri('Tutte le marche', 'Alle Marken', 'All brands'),
+  otherBrands: tri('Altre marche', 'Andere Marken', 'Other brands'),
+  showN: tri('Mostra {n} macchine', '{n} Maschinen anzeigen', 'Show {n} machines'),
+  show1: tri('Mostra 1 macchina', '1 Maschine anzeigen', 'Show 1 machine'),
+  rentN: tri('Vedi {n} macchine a noleggio', '{n} Mietmaschinen ansehen', 'See {n} machines for rent'),
+  none: tri('Nessuna ora: avvisami', 'Derzeit keine: benachrichtigen', 'None now: notify me'),
+  notFound: tri('Non trovi il modello?', 'Modell nicht dabei?', "Can't find the model?"),
+  weSearch: tri('Cerchiamo noi per te', 'Wir suchen für Sie', "We'll find it for you"),
+  heroCaption: tri('Volvo CE · concessionario ufficiale', 'Volvo CE · offizieller Händler', 'Volvo CE · authorised dealer'),
+  readyN: tri('{n} macchine in pronta consegna', '{n} Maschinen sofort verfügbar', '{n} machines ready to deliver'),
+  st1: tri('anno di fondazione a Torbole Casaglia', 'gegründet in Torbole Casaglia', 'founded in Torbole Casaglia'),
+  st2: tri('officine tra Brescia, Bergamo, Trento e Bolzano', 'Werkstätten zwischen Brescia, Bergamo, Trient und Bozen', 'workshops across Brescia, Bergamo, Trento and Bolzano'),
+  st3: tri('persone, più della metà tecnici', 'Mitarbeitende, mehr als die Hälfte Techniker', 'people, more than half technicians'),
+  st4: tri('marchi ufficiali, ricambi originali', 'offizielle Marken, Originalteile', 'official brands, genuine parts'),
+
+  // stock
+  stockKicker: tri('In pronta consegna', 'Sofort verfügbar', 'Ready to deliver'),
+  stockH2: tri('Le macchine nei nostri piazzali, oggi.', 'Die Maschinen auf unseren Plätzen, heute.', 'The machines in our yards, today.'),
+  condition: tri('Condizione', 'Zustand', 'Condition'),
+  cAll: tri('Tutte', 'Alle', 'All'),
+  cNew: tri('Nuove', 'Neu', 'New'),
+  cUsed: tri('Usate', 'Gebraucht', 'Used'),
+  sReady: tri('Pronta consegna', 'Sofort verfügbar', 'Ready'),
+  sIncoming: tri('In arrivo', 'Im Zulauf', 'Arriving soon'),
+  sReserved: tri('Riservata', 'Reserviert', 'Reserved'),
+  isNew: tri('Nuova', 'Neu', 'New'),
+  condNew: tri('nuova', 'neu', 'new'),
+  condUsed: tri('usata', 'gebraucht', 'used'),
+  onRequest: tri('Prezzo su richiesta', 'Preis auf Anfrage', 'Price on request'),
+  vat: tri('+ IVA', 'zzgl. MwSt.', '+ VAT'),
+  compare: tri('Confronta', 'Vergleichen', 'Compare'),
+  details: tri('Dettagli', 'Details', 'Details'),
+  favAdd: tri('Salva nei preferiti', 'Merken', 'Save'),
+  favDel: tri('Togli dai preferiti', 'Nicht mehr merken', 'Remove from saved'),
+  emptyH: tri('Nessuna macchina in questa categoria, per ora.', 'Derzeit keine Maschine in dieser Kategorie.', 'No machines in this category right now.'),
+  emptyP: tri(
+    'Lasciaci il modello che cerchi: ti scriviamo appena ne arriva una.',
+    'Nennen Sie uns das gesuchte Modell: Wir melden uns, sobald eines eintrifft.',
+    'Tell us the model you need: we will write as soon as one arrives.'
+  ),
+  emptyBtn: tri('Avvisami quando arriva', 'Benachrichtigen', 'Notify me'),
+  alsoOn: tri('Lo stesso parco è pubblicato anche su MachineryZone e Mascus.', 'Unser Bestand ist auch auf MachineryZone und Mascus.', 'Our stock is also listed on MachineryZone and Mascus.'),
+  allStock: tri('Vedi tutto il parco macchine ({n})', 'Gesamten Bestand ansehen ({n})', 'See all machines ({n})'),
+  selN: tri('{n} macchine selezionate', '{n} Maschinen ausgewählt', '{n} machines selected'),
+  sel1: tri('1 macchina selezionata · scegline almeno un’altra', '1 Maschine ausgewählt · wählen Sie noch eine', '1 machine selected · pick one more'),
+  cancel: tri('Annulla', 'Abbrechen', 'Cancel'),
+  close: tri('Chiudi', 'Schließen', 'Close'),
+  compareH: tri('Confronto', 'Vergleich', 'Comparison'),
+  price: tri('Prezzo', 'Preis', 'Price'),
+  equipment: tri('Dotazioni', 'Ausstattung', 'Equipment'),
+
+  // brands
+  brandsKicker: tri('I nostri marchi', 'Unsere Marken', 'Our brands'),
+  brandsH2: tri('Cinque costruttori. Un solo referente.', 'Fünf Hersteller. Ein Ansprechpartner.', 'Five manufacturers. One point of contact.'),
+  official: tri('Concessionario ufficiale', 'Offizieller Händler', 'Authorised dealer'),
+  range: tri('Gamma', 'Programm', 'Range'),
+
+  // rental (home + page)
+  rentH2: tri('Flotta recente, in cantiere quando serve.', 'Moderne Mietflotte, auf der Baustelle, wenn Sie sie brauchen.', 'A recent fleet, on site when you need it.'),
+  rentP: tri(
+    'Scegli macchina e date: verifichiamo la disponibilità nella sede più vicina e ti richiamiamo con il prezzo.',
+    'Maschine und Zeitraum wählen: Wir prüfen die Verfügbarkeit am nächsten Standort und rufen mit dem Preis zurück.',
+    'Pick the machine and dates: we check availability at the nearest branch and call back with the price.'
+  ),
+  rentB1: tri('Macchine di recente fabbricazione', 'Maschinen neueren Baujahrs', 'Recently built machines'),
+  rentB2: tri('Manutenzione nelle nostre officine', 'Wartung in unseren Werkstätten', 'Serviced in our workshops'),
+  rentB3: tri('Stima del prezzo subito online', 'Sofortige Preisschätzung online', 'Instant price estimate online'),
+  rentAll: tri('Vedi tutta la flotta a noleggio', 'Ganze Mietflotte ansehen', 'See the whole rental fleet'),
+  machine: tri('Macchina', 'Maschine', 'Machine'),
+  from: tri('Dal', 'Von', 'From'),
+  to: tri('Al', 'Bis', 'To'),
+  delivery: tri('Consegna', 'Lieferung', 'Delivery'),
+  toSite: tri('In cantiere', 'Auf die Baustelle', 'To the site'),
+  pickup: tri('Ritiro in sede', 'Abholung', 'Pick-up'),
+  pickBranch: tri('Sede di ritiro', 'Abholstandort', 'Pick-up branch'),
+  summary: tri('Riepilogo', 'Zusammenfassung', 'Summary'),
+  day: tri('giorno', 'Tag', 'day'),
+  days: tri('giorni', 'Tage', 'days'),
+  sumSite: tri('consegna in cantiere', 'Lieferung auf die Baustelle', 'delivery to site'),
+  sumPick: tri('ritiro a', 'Abholung in', 'pick-up at'),
+  badDates: tri('Controlla le date: la fine deve venire dopo l’inizio.', 'Bitte Daten prüfen: Ende muss nach Beginn liegen.', 'Check the dates: the end must come after the start.'),
+  checkAvail: tri('Continua', 'Weiter', 'Continue'),
+  rtMini: tri('Mini escavatore', 'Minibagger', 'Mini excavator'),
+  rtEsc: tri('Escavatore', 'Bagger', 'Excavator'),
+  rtCompact: tri('Pala compatta', 'Kompaktlader', 'Compact loader'),
+  rtWheel: tri('Pala gommata', 'Radlader', 'Wheel loader'),
+  rtTele: tri('Telescopico', 'Teleskoplader', 'Telehandler'),
+  rtDump: tri('Dumper', 'Dumper', 'Dumper'),
+  rentKicker: tri('Noleggio · 5 sedi', 'Miete · 5 Standorte', 'Rental · 5 branches'),
+  rentPageH1: tri('Noleggio macchine movimento terra', 'Baumaschinen mieten', 'Earthmoving machine rental'),
+  rentPageLead: tri(
+    'Scegli macchina e date, vedi subito una stima. Consegna in cantiere o ritiro nella sede più vicina.',
+    'Maschine und Zeitraum wählen, sofort eine Schätzung sehen. Lieferung auf die Baustelle oder Abholung am nächsten Standort.',
+    'Pick the machine and dates and see an estimate right away. Delivery to site or pick-up at the nearest branch.'
+  ),
+  seeFleet: tri('Scegli la macchina', 'Maschine wählen', 'Choose a machine'),
+  f1: tri('Flotta recente', 'Moderne Flotte', 'Recent fleet'),
+  f2: tri('Consegna in cantiere', 'Lieferung auf die Baustelle', 'Delivery to site'),
+  f3: tri('Assistenza dalle nostre officine', 'Service aus unseren Werkstätten', 'Service from our workshops'),
+  rcAll: tri('Tutte', 'Alle', 'All'),
+  rcEsc: tri('Escavatori', 'Bagger', 'Excavators'),
+  rcPale: tri('Pale', 'Lader', 'Loaders'),
+  rcLift: tri('Sollevamento', 'Heben', 'Lifting'),
+  rcTrans: tri('Trasporto', 'Transport', 'Hauling'),
+  rcGreen: tri('Verde e agricoltura', 'Grün und Landwirtschaft', 'Landscaping and farming'),
+  rateBy: tri('Tariffa', 'Tarif', 'Rate'),
+  pDay: tri('Giorno', 'Tag', 'Day'),
+  pWeek: tri('Settimana', 'Woche', 'Week'),
+  pMonth: tri('Mese', 'Monat', 'Month'),
+  uDay: tri('giorno', 'Tag', 'day'),
+  uWeek: tri('settimana', 'Woche', 'week'),
+  uMonth: tri('mese', 'Monat', 'month'),
+  fromPrice: tri('da', 'ab', 'from'),
+  choose: tri('Scegli', 'Wählen', 'Choose'),
+  chosen: tri('Scelta', 'Gewählt', 'Selected'),
+  ratesNote: tri(
+    'Tariffe indicative IVA esclusa, carburante escluso. Il prezzo definitivo dipende da durata e sede.',
+    'Richtpreise zzgl. MwSt., ohne Kraftstoff. Der Endpreis hängt von Dauer und Standort ab.',
+    'Indicative rates excl. VAT and fuel. Final price depends on duration and branch.'
+  ),
+  bookH: tri('La tua richiesta', 'Ihre Anfrage', 'Your request'),
+  siteAddr: tri('Indirizzo del cantiere', 'Adresse der Baustelle', 'Site address'),
+  addrPh: tri('Via, comune', 'Straße, Ort', 'Street, town'),
+  extras: tri('Accessori', 'Zubehör', 'Extras'),
+  xBucket: tri('Benna aggiuntiva', 'Zusätzlicher Löffel', 'Extra bucket'),
+  xHammer: tri('Martello idraulico', 'Hydraulikhammer', 'Hydraulic breaker'),
+  xCover: tri('Copertura danni', 'Schadenschutz', 'Damage cover'),
+  perDay: tri('/g', '/Tag', '/day'),
+  rentLine: tri('Noleggio {x}', 'Miete {x}', 'Rental {x}'),
+  transport: tri('Trasporto', 'Transport', 'Transport'),
+  toQuote: tri('da quotare', 'nach Angebot', 'quoted separately'),
+  free: tri('gratuito', 'kostenlos', 'free'),
+  estimate: tri('Stima', 'Schätzung', 'Estimate'),
+  bookSend: tri('Richiedi prenotazione', 'Reservierung anfragen', 'Request booking'),
+  bookNote: tri('Nessun pagamento online: ti richiamiamo per confermare.', 'Keine Online-Zahlung: Wir rufen Sie zur Bestätigung an.', 'No online payment: we call you to confirm.'),
+  bookSentH: tri('Richiesta inviata', 'Anfrage gesendet', 'Request sent'),
+  bookSentP: tri('Ti richiamiamo per confermare disponibilità e prezzo.', 'Wir rufen Sie an, um Verfügbarkeit und Preis zu bestätigen.', 'We will call to confirm availability and price.'),
+  editReq: tri('Modifica richiesta', 'Anfrage ändern', 'Edit request'),
+  howH: tri('Come funziona', 'So funktioniert’s', 'How it works'),
+  faqH: tri('Domande frequenti', 'Häufige Fragen', 'Frequent questions'),
+
+  // service
+  svcAlt: tri('Tecnico al lavoro sulla ruota di una pala gommata Volvo', 'Techniker am Rad eines Volvo-Radladers', 'Technician working on a Volvo wheel loader'),
+  svcQuote: tri('Più della metà del nostro team lavora in officina.', 'Mehr als die Hälfte unseres Teams arbeitet in der Werkstatt.', 'More than half of our team works in the workshop.'),
+  svcSub: tri('Tecnici formati dai costruttori, ricambi originali a magazzino.', 'Vom Hersteller geschulte Techniker, Originalteile auf Lager.', 'Factory-trained technicians, genuine parts in stock.'),
+  svcKicker: tri('Assistenza e ricambi', 'Service und Ersatzteile', 'Service and parts'),
+  svcH2: tri('Cinque officine. Scegli la più vicina.', 'Fünf Werkstätten. Wählen Sie die nächste.', 'Five workshops. Pick the nearest.'),
+  book: tri('Prenota un intervento a {x}', 'Service in {x} buchen', 'Book service in {x}'),
+  partsLabel: tri('Ricambi originali', 'Originalersatzteile', 'Genuine parts'),
+  partsPh: tri('Codice ricambio o matricola macchina', 'Teilenummer oder Seriennummer', 'Part number or machine serial'),
+  partsHint: tri(
+    'Volvo CE, Bobcat, Mecalac, Terex Fuchs, Keestrack. Spedizione o ritiro in officina.',
+    'Volvo CE, Bobcat, Mecalac, Terex Fuchs, Keestrack. Versand oder Abholung in der Werkstatt.',
+    'Volvo CE, Bobcat, Mecalac, Terex Fuchs, Keestrack. Shipping or workshop pick-up.'
+  ),
+  partsDone: tri(
+    'Richiesta per “{x}” pronta: ti rispondiamo con prezzo e disponibilità.',
+    'Anfrage zu „{x}“ bereit: Wir melden uns mit Preis und Verfügbarkeit.',
+    'Request for “{x}” ready: we will reply with price and availability.'
+  ),
+
+  // contact
+  contactKicker: tri('Contatti', 'Kontakt', 'Contact'),
+  slogan: tri('Diteci cosa vi serve, noi ci occupiamo del resto.', 'Sagen Sie uns, was Sie brauchen. Um den Rest kümmern wir uns.', 'Tell us what you need. We take care of the rest.'),
+  phone: tri('Telefono', 'Telefon', 'Phone'),
+  hq: tri('Sede', 'Sitz', 'Head office'),
+  fName: tri('Nome e azienda', 'Name und Firma', 'Name and company'),
+  fMsg: tri('Cosa ti serve?', 'Was brauchen Sie?', 'What do you need?'),
+  callback: tri('Ti richiama', 'Rückruf durch', 'Call back by'),
+  send: tri('Invia richiesta', 'Anfrage senden', 'Send request'),
+  sending: tri('Invio…', 'Wird gesendet…', 'Sending…'),
+  thanks: tri('Grazie, {x}.', 'Danke, {x}.', 'Thank you, {x}.'),
+  sentPlain: tri('Richiesta inviata.', 'Anfrage gesendet.', 'Request sent.'),
+  sentPhone: tri('Ti richiamiamo al {x}.', 'Wir rufen Sie unter {x} zurück.', 'We will call you back on {x}.'),
+  sentNoPhone: tri('Ti ricontattiamo a breve.', 'Wir melden uns in Kürze.', 'We will be in touch shortly.'),
+  sentWa: tri('Abbiamo aperto WhatsApp con il messaggio pronto: premi Invia per mandarlo.', 'WhatsApp ist mit der fertigen Nachricht geöffnet: Tippen Sie auf Senden.', 'WhatsApp is open with your message ready: tap Send.'),
+  sendError: tri('Invio non riuscito. Riprova o chiamaci al 030 61 11 38.', 'Senden fehlgeschlagen. Bitte erneut versuchen oder 030 61 11 38 anrufen.', 'Sending failed. Try again or call 030 61 11 38.'),
+  newReq: tri('Nuova richiesta', 'Neue Anfrage', 'New request'),
+  required: tri('Campo obbligatorio', 'Pflichtfeld', 'Required'),
+  privacyConsent: tri('Inviando accetti l’informativa privacy.', 'Mit dem Absenden akzeptieren Sie die Datenschutzerklärung.', 'By sending you accept the privacy notice.'),
+
+  // footer
+  footTag: tri('Vendita, noleggio, assistenza e ricambi per macchine movimento terra dal 1964.', 'Verkauf, Miete, Service und Ersatzteile für Baumaschinen seit 1964.', 'Sales, rental, service and parts for earthmoving machines since 1964.'),
+  fMachines: tri('Macchine', 'Maschinen', 'Machines'),
+  fServices: tri('Servizi', 'Leistungen', 'Services'),
+  tradeIn: tri('Valutazione usato', 'Gebrauchtbewertung', 'Trade-in valuation'),
+  follow: tri('Seguici', 'Folgen Sie uns', 'Follow us'),
+  privacy: tri('Privacy', 'Datenschutz', 'Privacy'),
+
+  // toast
+  toastDE: tri('', 'Sprache auf Deutsch umgestellt – Standort {x}', ''),
+  toastIT: tri('Lingua impostata su italiano – sede di {x}', '', ''),
+  undo: tri('Annulla', 'Rückgängig', 'Undo'),
+
+  // catalog
+  stockH1: tri('Parco macchine', 'Maschinenbestand', 'Machine stock'),
+  count: tri('{n} macchine', '{n} Maschinen', '{n} machines'),
+  count1: tri('1 macchina', '1 Maschine', '1 machine'),
+  readyShort: tri('{n} in pronta consegna', '{n} sofort verfügbar', '{n} ready to deliver'),
+  filters: tri('Filtri', 'Filter', 'Filters'),
+  sortBy: tri('Ordina per', 'Sortieren nach', 'Sort by'),
+  sRecent: tri('Più recenti', 'Neueste zuerst', 'Newest first'),
+  sPriceAsc: tri('Prezzo crescente', 'Preis aufsteigend', 'Price, low to high'),
+  sPriceDesc: tri('Prezzo decrescente', 'Preis absteigend', 'Price, high to low'),
+  sHours: tri('Meno ore', 'Wenigste Stunden', 'Fewest hours'),
+  sYear: tri('Anno più recente', 'Neuestes Baujahr', 'Latest year'),
+  view: tri('Vista', 'Ansicht', 'View'),
+  vGrid: tri('Griglia', 'Raster', 'Grid'),
+  vList: tri('Elenco', 'Liste', 'List'),
+  searchPh: tri('Modello, es. EC250', 'Modell, z. B. EC250', 'Model, e.g. EC250'),
+  searchModel: tri('Cerca modello', 'Modell suchen', 'Search model'),
+  onlyReady: tri('Solo pronta consegna', 'Nur sofort verfügbar', 'Ready to deliver only'),
+  yearFrom: tri('Anno dal', 'Baujahr ab', 'Year from'),
+  any: tri('Qualsiasi', 'Beliebig', 'Any'),
+  anyShort: tri('qualsiasi', 'beliebig', 'any'),
+  maxHours: tri('Ore massime', 'Max. Stunden', 'Max hours'),
+  maxPrice: tri('Prezzo massimo', 'Max. Preis', 'Max price'),
+  priceNote: tri('Le macchine con prezzo su richiesta restano visibili.', 'Maschinen mit Preis auf Anfrage bleiben sichtbar.', 'Machines with price on request stay visible.'),
+  branches: tri('Sede', 'Standort', 'Branch'),
+  reset: tri('Azzera filtri', 'Filter zurücksetzen', 'Clear filters'),
+  resetAll: tri('Azzera tutto', 'Alle entfernen', 'Clear all'),
+  removeF: tri('Rimuovi filtro', 'Filter entfernen', 'Remove filter'),
+  showResults: tri('Mostra risultati', 'Ergebnisse anzeigen', 'Show results'),
+  noResH: tri('Nessuna macchina con questi filtri.', 'Keine Maschine mit diesen Filtern.', 'No machines match these filters.'),
+  noResP: tri(
+    'Allarga i filtri oppure salva la ricerca: ti scriviamo appena arriva una macchina adatta.',
+    'Filter lockern oder Suche speichern: Wir melden uns, sobald eine passende Maschine eintrifft.',
+    'Widen the filters or save the search: we will write as soon as a matching machine arrives.'
+  ),
+  saveH: tri('Salva questa ricerca', 'Suche speichern', 'Save this search'),
+  saveP: tri('Ti avvisiamo quando entra una macchina con questi filtri.', 'Wir benachrichtigen Sie, wenn eine passende Maschine eintrifft.', 'We let you know when a matching machine comes in.'),
+  saveBtn: tri('Avvisami', 'Benachrichtigen', 'Notify me'),
+  savedOk: tri('Ricerca salvata', 'Suche gespeichert', 'Search saved'),
+
+  // machine page
+  backResults: tri('Torna al parco macchine', 'Zurück zum Bestand', 'Back to stock'),
+  photo: tri('Foto', 'Foto', 'Photo'),
+  prevPhoto: tri('Foto precedente', 'Vorheriges Foto', 'Previous photo'),
+  nextPhoto: tri('Foto successiva', 'Nächstes Foto', 'Next photo'),
+  showPhoto: tri('Mostra foto {x}', 'Foto {x} zeigen', 'Show photo {x}'),
+  ref: tri('rif.', 'Ref.', 'ref.'),
+  year: tri('Anno', 'Baujahr', 'Year'),
+  hours: tri('Ore di lavoro', 'Betriebsstunden', 'Hours'),
+  weight: tri('Peso operativo', 'Einsatzgewicht', 'Operating weight'),
+  location: tri('Sede', 'Standort', 'Location'),
+  tradePossible: tri('Permuta possibile', 'Inzahlungnahme möglich', 'Trade-in possible'),
+  waWrite: tri('Scrivi su WhatsApp', 'Per WhatsApp schreiben', 'Message on WhatsApp'),
+  waAsk: tri('Chiedi su WhatsApp', 'Per WhatsApp fragen', 'Ask on WhatsApp'),
+  call: tri('Chiama', 'Anrufen', 'Call'),
+  writtenOffer: tri('Offerta scritta', 'Schriftliches Angebot', 'Written offer'),
+  share: tri('Condividi', 'Teilen', 'Share'),
+  linkCopied: tri('Link copiato', 'Link kopiert', 'Link copied'),
+  readyMsg: tri('Messaggio già pronto', 'Fertige Nachricht', 'Ready-made message'),
+  waMsg1: tri('Buongiorno, la {m} ({r}) è ancora disponibile?', 'Guten Tag, ist die {m} ({r}) noch verfügbar?', 'Hello, is the {m} ({r}) still available?'),
+  waMsg2: tri('Posso vedere la {m} ({r}) in funzione questa settimana?', 'Kann ich die {m} ({r}) diese Woche in Betrieb sehen?', 'Can I see the {m} ({r}) working this week?'),
+  waMsg3: tri('Valutate la mia macchina in permuta per la {m} ({r})?', 'Nehmen Sie meine Maschine für die {m} ({r}) in Zahlung?', 'Would you take my machine as a trade-in for the {m} ({r})?'),
+  chooseMsg: tri('Scegli cosa chiedere', 'Was möchten Sie fragen?', 'Choose what to ask'),
+  openWa: tri('Apri WhatsApp', 'WhatsApp öffnen', 'Open WhatsApp'),
+  writeTo: tri('Scrivi a {x}', 'Schreiben an {x}', 'Message {x}'),
+  tabSpecs: tri('Specifiche', 'Technische Daten', 'Specifications'),
+  tabChecks: tri('Controlli officina', 'Werkstattprüfung', 'Workshop checks'),
+  checksIntro: tri(
+    'Controllo eseguito dai nostri tecnici prima della messa in vendita.',
+    'Prüfung durch unsere Techniker vor dem Verkauf.',
+    'Inspection carried out by our technicians before sale.'
+  ),
+  finKicker: tri('Finanziamento', 'Finanzierung', 'Financing'),
+  finH: tri('Quanto pagheresti al mese', 'Wie hoch wäre die Monatsrate', 'What you would pay per month'),
+  downPay: tri('Anticipo', 'Anzahlung', 'Down payment'),
+  term: tri('Durata', 'Laufzeit', 'Term'),
+  months: tri('mesi', 'Monate', 'months'),
+  monthly: tri('Rata indicativa', 'Richtrate', 'Indicative instalment'),
+  perMonth: tri('/mese', '/Monat', '/month'),
+  askProposal: tri('Chiedi la proposta', 'Angebot anfragen', 'Ask for a proposal'),
+  finNote: tri(
+    'Esempio con TAN {r}%, importo finanziato {x}. Simulazione non vincolante, soggetta ad approvazione.',
+    'Beispiel mit Sollzins {r} %, Finanzierungsbetrag {x}. Unverbindliche Berechnung, vorbehaltlich Genehmigung.',
+    'Example at {r}% nominal rate, financed amount {x}. Non-binding estimate, subject to approval.'
+  ),
+  tradeH: tri('Hai una macchina da cambiare?', 'Möchten Sie Ihre Maschine tauschen?', 'Have a machine to replace?'),
+  tradeP: tri(
+    'Mandaci marca, modello, anno e ore: la valutiamo in permuta o la ritiriamo in conto vendita.',
+    'Schicken Sie uns Marke, Modell, Baujahr und Stunden: Wir bewerten sie zur Inzahlungnahme oder nehmen sie in Kommission.',
+    'Send us brand, model, year and hours: we value it as a trade-in or sell it on consignment.'
+  ),
+  tradeBtn: tri('Valuta il tuo usato', 'Gebrauchte bewerten lassen', 'Value your machine'),
+  similar: tri('Macchine simili', 'Ähnliche Maschinen', 'Similar machines'),
+  allSimilar: tri('Tutto il parco macchine', 'Gesamter Bestand', 'All machines'),
+  contactPerson: tri('Il tuo referente', 'Ihr Ansprechpartner', 'Your contact'),
+  salesTeam: tri('Ufficio vendite', 'Verkaufsteam', 'Sales team'),
+
+  // misc
+  notFoundH: tri('Pagina non trovata', 'Seite nicht gefunden', 'Page not found'),
+  notFoundP: tri('La pagina che cerchi non esiste o è stata spostata.', 'Die gesuchte Seite existiert nicht oder wurde verschoben.', 'The page you are looking for does not exist or has moved.'),
+  backHome: tri('Torna alla home', 'Zur Startseite', 'Back to home'),
+} satisfies Record<string, Tri>;
+
+export type UiKey = keyof typeof ui;
+
+export function useT(lang: Lang) {
+  return (key: UiKey, vars: Record<string, string | number> = {}) => {
+    let s = ui[key][lang] || ui[key].it;
+    for (const [k, v] of Object.entries(vars)) s = s.split(`{${k}}`).join(String(v));
+    return s;
+  };
+}
+
+/** Pick the value for `lang` from a { it, de, en } object. */
+export const pick = (v: Tri, lang: Lang) => v[lang] || v.it;

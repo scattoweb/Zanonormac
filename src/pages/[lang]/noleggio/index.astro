@@ -1,0 +1,170 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../../layouts/Base.astro';
+import Icon from '../../../components/Icon.astro';
+import { pick, useT, type Lang } from '../../../i18n/ui';
+import { PATHS, langPaths } from '../../../i18n/utils';
+import { BRANCHES } from '../../../data/company';
+import { EXTRAS, FAQ, FLEET, MONTH_FACTOR, RENT_CATS, STEPS, WEEK_FACTOR } from '../../../data/rental';
+import { eur } from '../../../lib/format';
+import rentHero from '../../../assets/img/rent-hero.jpg';
+
+export const getStaticPaths = langPaths;
+
+const lang = Astro.params.lang as Lang;
+const t = useT(lang);
+const first = FLEET[0];
+const fleetData = FLEET.map((f) => ({ id: f.id, type: f.type, day: f.day, name: f.name, cls: pick(f.cls, lang) }));
+const i18n = {
+  day: t('day'), days: t('days'), uDay: t('uDay'), uWeek: t('uWeek'), uMonth: t('uMonth'),
+  choose: t('choose'), chosen: t('chosen'), rentLine: t('rentLine'), extras: t('extras'),
+  transport: t('transport'), toQuote: t('toQuote'), pickup: t('pickup'), free: t('free'), toSite: t('toSite'),
+  sending: t('sending'), send: t('bookSend'), sendError: t('sendError'), sentWa: t('sentWa'), bookSentP: t('bookSentP'),
+  branches: Object.fromEntries(BRANCHES.map((b) => [b.id, pick(b.short, lang)])),
+  perDay: t('perDay'), estimate: t('estimate'), vat: t('vat'),
+};
+---
+<Base lang={lang} path={PATHS.rental} section="rental"
+  title={`${t('rentPageH1')} · Zanon & Ormac`}
+  description={t('rentPageLead')}>
+
+  <section class="hero hero--rent" aria-labelledby="rent-h1">
+    <div class="hero__kb" aria-hidden="true"><Image class="hero__img" src={rentHero} alt="" widths={[640, 1024, 1440, 1920]} sizes="100vw" loading="eager" style="object-position:60% 55%" /></div>
+    <div class="hero__scrim" aria-hidden="true"></div>
+    <div class="wrap rhero__in rhero">
+      <span class="eyebrow fade-up">{t('rentKicker')}</span>
+      <h1 id="rent-h1" class="h1 fade-up d1">{t('rentPageH1')}</h1>
+      <p class="lead fade-up d2" style="color:var(--on-ink-muted)">{t('rentPageLead')}</p>
+      <div class="fade-up d3" style="display:flex;gap:10px;flex-wrap:wrap;padding-top:6px">
+        <a class="btn btn--primary btn--lg ripple sheen link-arrow" href="#flotta"><span>{t('seeFleet')}</span><Icon name="arrow" size={16} class="arrow" /></a>
+        <span class="rhero__facts"><span>{t('f1')}</span><span aria-hidden="true" style="color:var(--muted)">·</span><span>{t('f2')}</span><span aria-hidden="true" style="color:var(--muted)">·</span><span>{t('f3')}</span></span>
+      </div>
+    </div>
+  </section>
+
+  <div id="flotta" class="wrap" style="padding-top:56px;padding-bottom:96px;display:flex;flex-direction:column;gap:80px;scroll-margin-top:16px">
+    <div class="rlayout">
+      <div class="stack" style="gap:22px;min-width:0">
+        <div class="sec-head" style="align-items:center">
+          <div class="chips" role="group" aria-label={t('category')} data-rcats>
+            {RENT_CATS.map((c, i) => <button class="chip" type="button" aria-pressed={i === 0 ? 'true' : 'false'} data-value={c.id}>{t(c.key)}</button>)}
+          </div>
+          <div class="seg periodseg" role="group" aria-label={t('rateBy')} style="--i:0" data-period>
+            <span class="seg__thumb"></span>
+            <button type="button" aria-pressed="true" data-value="day">{t('pDay')}</button>
+            <button type="button" aria-pressed="false" data-value="week">{t('pWeek')}</button>
+            <button type="button" aria-pressed="false" data-value="month">{t('pMonth')}</button>
+          </div>
+        </div>
+
+        <div class="fleet anim-a" data-fleet>
+          {FLEET.map((f, i) => (
+            <article class="card" style={`--i:${i}`} data-rent={f.id} data-cat={f.cat} data-day={f.day} aria-current={i === 0 ? 'true' : 'false'}>
+              <div class="card__media">
+                <Image src={f.img} alt={f.name} widths={[480, 800]} sizes="(max-width: 620px) 100vw, (max-width: 1100px) 50vw, 30vw" loading={i < 4 ? 'eager' : 'lazy'} />
+                <span class="selmark" aria-hidden="true"><Icon name="check" stroke={2.6} /></span>
+              </div>
+              <div class="card__body" style="padding-bottom:16px">
+                <span class="label">{pick(f.cls, lang)}</span>
+                <h2 class="h3" style="font-size:22px">{f.name}</h2>
+                <div style="margin-top:auto;padding-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px">
+                  <span style="display:flex;flex-direction:column;line-height:1.2">
+                    <span style="font-size:12px;color:var(--muted)">{t('fromPrice')}</span>
+                    <span><b class="mono" style="font-size:19px;font-weight:500" data-rate>{eur(f.day)}</b><span style="font-size:13px;color:var(--muted)"> / <span data-unit>{t('uDay')}</span></span></span>
+                  </span>
+                  <a class="btn btn--dark btn--sm ripple" href="#prenota" style="position:relative;z-index:2" data-pick={f.id}>{i === 0 ? t('chosen') : t('choose')}</a>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+        <span class="hint">{t('ratesNote')}</span>
+      </div>
+
+      <aside id="prenota" style="scroll-margin-top:16px" aria-labelledby="book-h">
+        <div class="booking ink-field">
+          <form class="stack" style="gap:18px" data-book novalidate>
+            <span id="book-h" class="eyebrow eyebrow--light">{t('bookH')}</span>
+            <div class="booking__sel" data-sel>
+              {FLEET.map((f, i) => (
+                <Image src={f.img} alt="" widths={[168]} sizes="84px" data-sel-img={f.id} hidden={i !== 0} loading="lazy" />
+              ))}
+              <span style="display:flex;flex-direction:column;min-width:0">
+                <span class="label" style="color:var(--on-ink-muted)" data-sel-cls>{pick(first.cls, lang)}</span>
+                <b data-sel-name>{first.name}</b>
+              </span>
+            </div>
+            <div class="fields" style="gap:10px">
+              <label class="field" for="b-from"><span class="label">{t('from')}</span><input class="input input--mono" type="date" id="b-from" name="from" required /></label>
+              <label class="field" for="b-to"><span class="label">{t('to')}</span><input class="input input--mono" type="date" id="b-to" name="to" required /></label>
+            </div>
+            <div class="seg seg--ink" role="group" aria-label={t('delivery')} style="--i:0" data-site>
+              <span class="seg__thumb"></span>
+              <button type="button" aria-pressed="true" data-value="1">{t('toSite')}</button>
+              <button type="button" aria-pressed="false" data-value="0">{t('pickup')}</button>
+            </div>
+            <label class="field" for="addr" data-addr-row>
+              <span class="label">{t('siteAddr')}</span>
+              <input class="input" id="addr" name="addr" placeholder={t('addrPh')} autocomplete="street-address" data-persist />
+            </label>
+            <label class="field" for="b-branch" data-branch-row hidden>
+              <span class="label">{t('pickBranch')}</span>
+              <span class="select-wrap">
+                <select class="select" id="b-branch" data-branch-select>
+                  {BRANCHES.map((b) => <option value={b.id}>{pick(b.name, lang)}</option>)}
+                </select>
+                <Icon name="chevron" size={16} />
+              </span>
+            </label>
+            <fieldset style="border:0;padding:0;margin:0;display:flex;flex-direction:column">
+              <legend class="label" style="color:var(--on-ink-muted);padding:0;margin-bottom:6px">{t('extras')}</legend>
+              {EXTRAS.map((x) => (
+                <label class="opt opt--ink"><input type="checkbox" name="extra" value={x.id} data-day={x.day} checked={x.id === 'cover'} /><span style="font-size:14px">{t(x.key)}</span><span class="mono">+{eur(x.day)}{t('perDay')}</span></label>
+              ))}
+            </fieldset>
+            <div class="fields" style="gap:10px">
+              <label class="field" for="b-name"><span class="label">{t('fName')}</span><input class="input" id="b-name" name="name" autocomplete="name" required data-persist /></label>
+              <label class="field" for="b-phone"><span class="label">{t('phone')}</span><input class="input input--mono" id="b-phone" name="phone" type="tel" autocomplete="tel" required data-persist /></label>
+            </div>
+            <div class="lines" aria-live="polite" data-lines></div>
+            <p class="warn" data-bad hidden style="margin:0">{t('badDates')}</p>
+            <button class="btn btn--primary btn--lg ripple sheen" type="submit" data-submit>{t('bookSend')}</button>
+            <span style="font-size:12px;color:var(--on-ink-muted);text-align:center">{t('bookNote')}</span>
+          </form>
+          <div class="done" data-book-done hidden role="status" style="padding:8px 0">
+            <span class="done__icon" style="background:var(--accent-on-ink);color:var(--ink)"><Icon name="check" size={24} stroke={2.6} /></span>
+            <b class="h3" style="font-size:28px">{t('bookSentH')}</b>
+            <p style="color:#d5dbd6" data-book-done-text></p>
+            <button class="btn btn--ghost-ink ripple" type="button" data-book-edit>{t('editReq')}</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="stack" style="gap:28px" aria-labelledby="how-h">
+      <h2 id="how-h" class="h2" style="font-size:40px">{t('howH')}</h2>
+      <ol class="steps">
+        {STEPS.map((s, i) => <li><span class="mono" style="font-size:13px;color:var(--accent)">0{i + 1}</span><b>{pick(s.h, lang)}</b><p>{pick(s.p, lang)}</p></li>)}
+      </ol>
+    </section>
+
+    <section class="stack" style="gap:20px" aria-labelledby="faq-h">
+      <h2 id="faq-h" class="h2" style="font-size:40px">{t('faqH')}</h2>
+      <div class="faq">
+        {FAQ.map((f, i) => (
+          <div class="faq__item">
+            <button class="faq__q" type="button" aria-expanded={i === 0 ? 'true' : 'false'} aria-controls={`faq-${i}`} id={`faq-q-${i}`} data-faq>
+              <span>{pick(f.q, lang)}</span><Icon name="plus" size={20} />
+            </button>
+            <div class="faq__a" id={`faq-${i}`} role="region" aria-labelledby={`faq-q-${i}`}><div><p>{pick(f.a, lang)}</p></div></div>
+          </div>
+        ))}
+      </div>
+    </section>
+  </div>
+
+  <script type="application/json" id="rent-data" set:html={JSON.stringify({ fleet: fleetData, i18n, week: WEEK_FACTOR, month: MONTH_FACTOR })} />
+  <script>
+    import '../../../scripts/rental';
+  </script>
+</Base>

@@ -1,0 +1,190 @@
+---
+import '../styles/global.css';
+import Icon from '../components/Icon.astro';
+import { HTML_LANG, LANGS, pick, useT, type Lang } from '../i18n/ui';
+import { PATHS, alternates, localize } from '../i18n/utils';
+import { BRANCHES, COMPANY, telHref } from '../data/company';
+import { getImage } from 'astro:assets';
+import ogDefault from '../assets/img/hero2.jpg';
+
+interface Props {
+  lang: Lang;
+  title: string;
+  description: string;
+  /** Language-independent path of this page, e.g. "/macchine/". */
+  path: string;
+  /** Which top-level nav item is current. */
+  section?: 'home' | 'stock' | 'rental';
+  bodyClass?: string;
+  noindex?: boolean;
+}
+
+const { lang, title, description, path, section, bodyClass, noindex } = Astro.props;
+const t = useT(lang);
+const alts = alternates(path);
+const canonical = new URL(localize(lang, path), Astro.site).href;
+const og = await getImage({ src: ogDefault, width: 1200, format: 'jpg' });
+const langIndex = LANGS.indexOf(lang);
+const hq = BRANCHES[0];
+
+const config = {
+  lang,
+  alternates: Object.fromEntries(alts.map((a) => [a.lang, a.href])),
+  branches: BRANCHES.map((b) => ({ id: b.id, de: b.de, phone: b.phone, short: pick(b.short, lang) })),
+  toast: { de: useT('de')('toastDE'), it: useT('it')('toastIT') },
+  undo: t('undo'),
+  whatsapp: COMPANY.whatsappIntl,
+  formEndpoint: import.meta.env.PUBLIC_FORM_ENDPOINT || '',
+};
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'AutomotiveBusiness',
+  name: COMPANY.name,
+  url: Astro.site?.href,
+  telephone: COMPANY.phoneIntl,
+  email: COMPANY.email,
+  foundingDate: String(COMPANY.founded),
+  vatID: 'IT' + COMPANY.vat,
+  address: { '@type': 'PostalAddress', streetAddress: COMPANY.street, postalCode: COMPANY.zip, addressLocality: COMPANY.city, addressRegion: COMPANY.province, addressCountry: 'IT' },
+  sameAs: [COMPANY.instagram, COMPANY.facebook],
+};
+
+const nav = [
+  { key: 'navStock', href: localize(lang, PATHS.stock), id: 'stock' },
+  { key: 'navRent', href: localize(lang, PATHS.rental), id: 'rental' },
+  { key: 'navService', href: localize(lang, '/#assistenza'), id: 'service' },
+  { key: 'navParts', href: localize(lang, '/#assistenza'), id: 'parts' },
+  { key: 'navAbout', href: localize(lang, '/#marchi'), id: 'about' },
+] as const;
+---
+<!doctype html>
+<html lang={HTML_LANG[lang]}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>{title}</title>
+  <meta name="description" content={description} />
+  <link rel="canonical" href={canonical} />
+  {alts.map((a) => <link rel="alternate" hreflang={a.lang} href={new URL(a.href, Astro.site).href} />)}
+  <link rel="alternate" hreflang="x-default" href={new URL(localize('it', path), Astro.site).href} />
+  {noindex && <meta name="robots" content="noindex" />}
+  <meta name="theme-color" content="#0e1210" />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonical} />
+  <meta property="og:image" content={new URL(og.src, Astro.site).href} />
+  <meta property="og:locale" content={HTML_LANG[lang].replace('-', '_')} />
+  <slot name="head" />
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  <script type="application/json" id="zo-config" set:html={JSON.stringify(config)} />
+</head>
+<body class={bodyClass}>
+  <a class="skip" href="#main">{t('skip')}</a>
+
+  <div class="util">
+    <div class="wrap util__in">
+      <label class="util__branch" for="branch-top">
+        <Icon name="pin" size={14} />
+        <span class="hide-m">{t('yourBranch')}</span>
+        <span class="util__select">
+          <select id="branch-top" data-branch-select>
+            {BRANCHES.map((b) => <option value={b.id}>{pick(b.name, lang)}</option>)}
+          </select>
+          <Icon name="chevron" size={12} stroke={2.4} />
+        </span>
+      </label>
+      <div class="util__right">
+        <a class="util__phone navlink hide-m" href={telHref(hq.phone)} data-branch-phone>
+          <Icon name="phone" size={14} />
+          <span class="mono" data-branch-phone-text>{hq.phone}</span>
+        </a>
+        <nav class="seg langs" style={`--i:${langIndex}`} aria-label={t('langLabel')}>
+          <span class="seg__thumb"></span>
+          {alts.map((a) => (
+            <a href={a.href} hreflang={a.lang} lang={a.lang} aria-current={a.lang === lang ? 'true' : undefined} data-lang-link>{a.lang.toUpperCase()}</a>
+          ))}
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <header class="header">
+    <div class="wrap header__in">
+      <a class="logo" href={localize(lang, '/')} aria-label="Zanon & Ormac, home"><b>Zanon</b><i>&amp;</i><b>Ormac</b></a>
+      <nav class="nav" aria-label={t('menu')}>
+        {nav.map((n) => <a class="navlink" href={n.href} aria-current={section === n.id ? 'page' : undefined}>{t(n.key)}</a>)}
+      </nav>
+      <div class="header__actions">
+        <a class="btn btn--primary ripple sheen hide-m" href={localize(lang, '/#contatti')}>{t('quote')}</a>
+        <button class="burger" type="button" aria-label={t('menu')} aria-expanded="false" aria-controls="mmenu" data-menu-open>
+          <Icon name="menu" size={20} />
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="mmenu" id="mmenu" data-menu>
+    <div class="mmenu__scrim" data-menu-close></div>
+    <nav class="mmenu__panel" aria-label={t('menu')}>
+      <button class="mmenu__close" type="button" aria-label={t('closeMenu')} data-menu-close><Icon name="x" size={20} /></button>
+      <a class="mlink" href={localize(lang, '/')}>{t('home')}</a>
+      {nav.map((n) => <a class="mlink" href={n.href}>{t(n.key)}</a>)}
+      <a class="mlink" href={localize(lang, '/#contatti')}>{t('navContact')}</a>
+      <a class="btn btn--primary btn--lg ripple" style="margin-top:20px" href={telHref(COMPANY.phone)}><Icon name="phone" size={16} /> {COMPANY.phone}</a>
+    </nav>
+  </div>
+
+  <main id="main">
+    <slot />
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      <div class="footer__grid">
+        <div class="footer__col">
+          <span class="logo" style="color:#f2f4f0"><b>Zanon</b><i>&amp;</i><b>Ormac</b></span>
+          <span style="max-width:34ch">{t('footTag')}</span>
+          <span>{COMPANY.street}, {COMPANY.zip} {COMPANY.city} ({COMPANY.province})</span>
+          <a class="mono" href={telHref(COMPANY.phone)}>{COMPANY.phone}</a>
+          <a class="mono" href={`mailto:${COMPANY.email}`}>{COMPANY.email}</a>
+        </div>
+        <div class="footer__col">
+          <span class="label">{t('fMachines')}</span>
+          <a class="navlink" href={localize(lang, PATHS.stock) + '?cond=nuovo'}>{t('navNew')}</a>
+          <a class="navlink" href={localize(lang, PATHS.stock) + '?cond=usato'}>{t('navUsed')}</a>
+          <a class="navlink" href={localize(lang, PATHS.rental)}>{t('navRent')}</a>
+        </div>
+        <div class="footer__col">
+          <span class="label">{t('fServices')}</span>
+          <a class="navlink" href={localize(lang, '/#assistenza')}>{t('navService')}</a>
+          <a class="navlink" href={localize(lang, '/#assistenza')}>{t('navParts')}</a>
+          <a class="navlink" href={localize(lang, '/?topic=sell#contatti')}>{t('tradeIn')}</a>
+        </div>
+        <div class="footer__col">
+          <span class="label">{t('follow')}</span>
+          <a class="navlink" href={COMPANY.instagram} rel="noopener">Instagram</a>
+          <a class="navlink" href={COMPANY.facebook} rel="noopener">Facebook</a>
+          <a class="navlink" href={`https://wa.me/${COMPANY.whatsappIntl}`} rel="noopener">WhatsApp</a>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <span>© {new Date().getFullYear()} {COMPANY.name} · P.IVA {COMPANY.vat}</span>
+        <a class="navlink" href={localize(lang, PATHS.privacy)}>{t('privacy')}</a>
+      </div>
+    </div>
+  </footer>
+
+  <slot name="after" />
+
+  <a class="fab" href={`https://wa.me/${COMPANY.whatsappIntl}`} target="_blank" rel="noopener" aria-label="WhatsApp">
+    <Icon name="chat" size={24} />
+  </a>
+
+  <script>
+    import '../scripts/site';
+  </script>
+</body>
+</html>
